@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Cache and config files
+resolver_cache.json
+user_config.json
+
+# Test outputs
+test_output.xlsx
+*_표준BOM.xlsx
+
+# PyInstaller
+*.spec
+*.exe
+
+# OS files
+.DS_Store
+Thumbs.db

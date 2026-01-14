@@ -13,7 +13,12 @@ import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
 
-from config import COLUMN_MAP_CANDIDATES, COMPONENT_TYPE_KEYWORDS, KNOWN_MANUFACTURERS, REFDES_PREFIXES
+from config import (
+    COLUMN_MAP_CANDIDATES, COMPONENT_TYPE_KEYWORDS, KNOWN_MANUFACTURERS, REFDES_PREFIXES,
+    SMD_KEYWORDS, DIP_KEYWORDS, TO_PACKAGE_SMD_VARIANTS, SMD_CRYSTAL_PACKAGES, THT_CRYSTAL_PACKAGES,
+    ELECTROLYTIC_KEYWORDS, SMD_ELECTROLYTIC_KEYWORDS, UNCERTAIN_PART_KEYWORDS,
+    load_components_db, get_mounting_type_from_package
+)
 
 
 class BOMParser:
@@ -28,6 +33,7 @@ class BOMParser:
         self.detected_header_row: int = 0
         self.skipped_rows: Optional[pd.DataFrame] = None
         self.headerless_mode: bool = False  # 헤더 없는 BOM 모드
+        self.components_db = load_components_db()  # 전자부품 DB 로드
     
     def _unmerge_excel_cells(self, file_path: str) -> pd.DataFrame:
         """
@@ -598,6 +604,149 @@ class BOMParser:
         used = set(mapping.values())
         self.unmapped_columns = [c for c in self.raw_df.columns if c not in used]
     
+    def detect_mounting_type(self, row_data: Dict[str, str]) -> Tuple[str, str]:
+        """
+        부품 정보를 분석하여 장착방식(SMD/DIP/확인필요) 판별
+        
+        Args:
+            row_data: {'품목': str, '스펙': str, 'package': str, 'mpn': str} 형태의 딕셔너리
+            
+        Returns:
+            (장착방식, 매칭된_MPN) 튜플
+            - 장착방식: 'SMD', 'DIP', 또는 '확인필요'
+            - 매칭된_MPN: DB에서 매칭된 MPN 패턴 (없으면 빈 문자열)
+        """
+        package = str(row_data.get('package', '')).strip().upper()
+        품목 = str(row_data.get('품목', '')).strip().upper()
+        스펙 = str(row_data.get('스펙', '')).strip().upper()
+        mpn = str(row_data.get('mpn', '')).strip().upper()
+        
+        # 모든 텍스트 결합
+        all_text = f"{package} {품목} {스펙} {mpn}"
+        matched_mpn = ""  # 매칭된 MPN 패턴 저장
+        
+        # 1단계: 패키지 정보가 있으면 DB에서 확인
+        if package:
+            result = get_mounting_type_from_package(package)
+            if result != '확인필요':
+                return (result, matched_mpn)
+        
+        # 2단계: MPN 패턴으로 부품 타입 확인 및 패키지 기반 판별
+        # 긴 패턴(더 구체적)을 먼저 매칭하기 위해 모든 패턴을 수집 후 정렬
+        # mpn 컬럼 또는 스펙 컬럼에서 MPN 패턴 검색
+        search_text = f"{mpn} {스펙}".upper()
+        
+        if search_text.strip() and self.components_db:
+            all_patterns = []  # (pattern, mounting, packages)
+            components = self.components_db.get('components', {})
+            for category, items in components.items():
+                for item_type, sub_items in items.items():
+                    for part_name, part_info in sub_items.items():
+                        mpn_patterns = part_info.get('mpn_patterns', [])
+                        mounting = part_info.get('mounting', '확인필요')
+                        packages = part_info.get('packages', [])
+                        for pattern in mpn_patterns:
+                            all_patterns.append((pattern.upper(), mounting, packages, pattern))  # 원본 패턴도 저장
+            
+            # 패턴 길이 역순 정렬 (긴 패턴 = 더 구체적인 패턴 먼저)
+            all_patterns.sort(key=lambda x: len(x[0]), reverse=True)
+            
+            for pattern_upper, mounting, packages, original_pattern in all_patterns:
+                if pattern_upper in search_text:
+                    matched_mpn = original_pattern  # 매칭된 MPN 패턴 저장
+                    if mounting == 'SMD':
+                        return ('SMD', matched_mpn)
+                    elif mounting == 'DIP':
+                        return ('DIP', matched_mpn)
+                    # SMD/DIP 혼용인 경우 패키지로 추가 판별
+                    for pkg in packages:
+                        if pkg.upper() in all_text:
+                            return (get_mounting_type_from_package(pkg), matched_mpn)
+                    break
+        
+        # 3단계: 명시적 SMD 키워드 확인
+        for kw in SMD_KEYWORDS:
+            if kw in all_text:
+                return ('SMD', matched_mpn)
+        
+        # 4단계: TO 패키지 SMD 변형 확인 (DPAK, D2PAK, TO-252, TO-263 등)
+        for kw in TO_PACKAGE_SMD_VARIANTS:
+            if kw in all_text:
+                return ('SMD', matched_mpn)
+        
+        # 5단계: SMD 크리스탈 패키지 확인
+        for kw in SMD_CRYSTAL_PACKAGES:
+            if kw in all_text:
+                return ('SMD', matched_mpn)
+        
+        # 6단계: SMD 전해콘덴서 확인
+        for kw in SMD_ELECTROLYTIC_KEYWORDS:
+            if kw in all_text:
+                return ('SMD', matched_mpn)
+        
+        # 7단계: 레귤레이터 특화 판별 (78xx, 79xx, LDO 시리즈)
+        regulator_smd_packages = ['SOT-223', 'SOT-23', 'SOT-89', 'TO-252', 'DPAK', 'D2PAK', 'TO-263', 'SOIC', 'DFN', 'QFN', 'MSOP']
+        regulator_dip_packages = ['TO-220', 'TO-92', 'TO-126', 'TO-247']
+        
+        # 레귤레이터/LDO 관련 키워드 확인
+        is_regulator = any(kw in all_text for kw in ['REGULATOR', 'LDO', '7805', '7812', '7905', '7912', 'AMS1117', 'LP2985', 'LM2596', 'TPS', 'BUCK', 'BOOST'])
+        
+        if is_regulator:
+            # SMD 패키지 확인
+            for pkg in regulator_smd_packages:
+                if pkg in all_text:
+                    return ('SMD', matched_mpn)
+            # DIP 패키지 확인
+            for pkg in regulator_dip_packages:
+                if pkg in all_text:
+                    return ('DIP', matched_mpn)
+        
+        # 8단계: 명시적 DIP/THT 키워드 확인
+        for kw in DIP_KEYWORDS:
+            if kw in all_text:
+                # 전해콘덴서 SMD 여부 재확인
+                if any(ekw in all_text for ekw in ELECTROLYTIC_KEYWORDS):
+                    if not any(skw in all_text for skw in SMD_ELECTROLYTIC_KEYWORDS):
+                        return ('DIP', matched_mpn)
+                return ('DIP', matched_mpn)
+        
+        # 9단계: THT 크리스탈 패키지 확인
+        for kw in THT_CRYSTAL_PACKAGES:
+            if kw in all_text:
+                return ('DIP', matched_mpn)
+        
+        # 10단계: 전해콘덴서는 기본적으로 DIP (명시적 SMD가 아니면)
+        if any(kw in all_text for kw in ELECTROLYTIC_KEYWORDS):
+            return ('DIP', matched_mpn)
+        
+        # 11단계: 불확실한 부품 키워드 확인
+        for kw in UNCERTAIN_PART_KEYWORDS:
+            if kw in all_text:
+                return ('확인필요', matched_mpn)
+        
+        # 12단계: DB 별칭으로 부품 타입 확인
+        if self.components_db:
+            components = self.components_db.get('components', {})
+            for category, items in components.items():
+                for item_type, sub_items in items.items():
+                    for part_name, part_info in sub_items.items():
+                        aliases = part_info.get('aliases', [])
+                        for alias in aliases:
+                            if alias in all_text:
+                                mounting = part_info.get('mounting', '확인필요')
+                                if mounting in ['SMD', 'DIP']:
+                                    return (mounting, matched_mpn)
+                                # SMD/DIP 혼용인 경우 패키지 정보로 추가 판별 필요
+                                break
+        
+        # 13단계: 칩 사이즈 코드 확인 (0402, 0603, 0805 등)
+        size_pattern = re.compile(r'\b(01005|0201|0402|0603|0805|1005|1206|1210|1812|2010|2512)\b')
+        if size_pattern.search(all_text):
+            return ('SMD', matched_mpn)
+        
+        # 판별 불가
+        return ('확인필요', matched_mpn)
+    
     def normalize(self) -> Tuple[bool, str]:
         """
         컬럼 매핑을 적용하여 정규화된 데이터프레임 생성
@@ -699,6 +848,27 @@ class BOMParser:
             
             # NO 재정렬
             self.normalized_df['NO'] = range(1, len(self.normalized_df) + 1)
+            
+            # 장착방식 자동 판별 및 MPN 매칭
+            mounting_types = []
+            matched_mpns = []
+            for _, row in self.normalized_df.iterrows():
+                row_data = {
+                    '품목': row.get('품목', ''),
+                    '스펙': row.get('스펙', ''),
+                    'package': row.get('package', ''),
+                    'mpn': row.get('mpn', '')
+                }
+                mounting_type, matched_mpn = self.detect_mounting_type(row_data)
+                mounting_types.append(mounting_type)
+                matched_mpns.append(matched_mpn)
+            
+            self.normalized_df['장착방식'] = mounting_types
+            
+            # 기존 MPN이 비어있으면 매칭된 MPN으로 채움
+            for idx, matched_mpn in enumerate(matched_mpns):
+                if matched_mpn and not str(self.normalized_df.at[idx, 'mpn']).strip():
+                    self.normalized_df.at[idx, 'mpn'] = matched_mpn
             
             if len(self.normalized_df) == 0:
                 return False, "유효한 부품 데이터가 없습니다."

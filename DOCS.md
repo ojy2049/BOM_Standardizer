@@ -72,6 +72,7 @@ BOM_Standardizer/
 │
 ├── user_config.json       # 사용자 설정 파일 (자동 생성)
 ├── part_aliases.json      # 부품 별칭 사전
+├── components_db.json     # 전자부품 DB (MPN 패턴, 패키지 매핑)
 ├── resolver_cache.json    # API 조회 캐시 (자동 생성)
 │
 ├── requirements.txt       # Python 패키지 의존성

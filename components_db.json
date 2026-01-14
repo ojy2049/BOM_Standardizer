@@ -1,0 +1,2981 @@
+{
+    "_description": "전자부품 데이터베이스 - 부품명칭과 장착방식",
+    "_version": "2.0",
+    "_last_updated": "2026-01-14",
+    "components": {
+        "수동소자": {
+            "저항": {
+                "칩저항": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0201",
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1206",
+                        "1210",
+                        "2010",
+                        "2512"
+                    ],
+                    "aliases": [
+                        "CHIP RESISTOR",
+                        "SMD RESISTOR",
+                        "RES-CHIP",
+                        "RESISTOR-CHIP",
+                        "R-CHIP"
+                    ]
+                },
+                "탄소피막저항": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "CARBON FILM",
+                        "CARBON RESISTOR"
+                    ]
+                },
+                "금속피막저항": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "METAL FILM",
+                        "METAL RESISTOR",
+                        "MFR"
+                    ]
+                },
+                "권선저항": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "AXIAL",
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "WIREWOUND",
+                        "POWER RESISTOR"
+                    ]
+                },
+                "가변저항": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "POTENTIOMETER",
+                        "POT",
+                        "TRIMMER",
+                        "VR",
+                        "VARIABLE RESISTOR"
+                    ]
+                },
+                "어레이저항": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "0402x4",
+                        "0603x4",
+                        "DIP",
+                        "SIP"
+                    ],
+                    "aliases": [
+                        "RESISTOR ARRAY",
+                        "RES ARRAY",
+                        "RESISTOR NETWORK",
+                        "R-NETWORK"
+                    ]
+                },
+                "서미스터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "0402",
+                        "0603",
+                        "0805",
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "NTC",
+                        "PTC",
+                        "THERMISTOR"
+                    ]
+                }
+            },
+            "콘덴서": {
+                "MLCC": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0201",
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1206",
+                        "1210",
+                        "1812",
+                        "2220"
+                    ],
+                    "aliases": [
+                        "CERAMIC CAP",
+                        "CERAMIC CAPACITOR",
+                        "CHIP CAP",
+                        "CHIP CAPACITOR",
+                        "CAP-CHIP"
+                    ]
+                },
+                "전해콘덴서": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "ELECTROLYTIC",
+                        "ELEC CAP",
+                        "AL CAP",
+                        "ALUMINUM CAP",
+                        "E-CAP"
+                    ]
+                },
+                "SMD전해콘덴서": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "V-CHIP",
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "SMD ELEC",
+                        "SMD ELECTROLYTIC",
+                        "CHIP ELECTROLYTIC"
+                    ]
+                },
+                "탄탈콘덴서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "E",
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "TANTALUM",
+                        "TANT CAP",
+                        "TA CAP"
+                    ]
+                },
+                "필름콘덴서": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "RADIAL",
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "FILM CAP",
+                        "POLYPROPYLENE",
+                        "POLYESTER",
+                        "PP CAP",
+                        "PET CAP"
+                    ]
+                },
+                "세라믹콘덴서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DISC",
+                        "CHIP"
+                    ],
+                    "aliases": [
+                        "CERAMIC",
+                        "DISC CERAMIC"
+                    ]
+                },
+                "슈퍼캡": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "RADIAL",
+                        "COIN"
+                    ],
+                    "aliases": [
+                        "SUPERCAP",
+                        "EDLC",
+                        "ULTRACAP",
+                        "GOLD CAP"
+                    ]
+                }
+            },
+            "인덕터": {
+                "칩인덕터": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1008",
+                        "1206",
+                        "1210"
+                    ],
+                    "aliases": [
+                        "CHIP INDUCTOR",
+                        "SMD INDUCTOR",
+                        "IND-CHIP"
+                    ]
+                },
+                "권선인덕터": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "RADIAL",
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "WIRE WOUND INDUCTOR",
+                        "COIL"
+                    ]
+                },
+                "파워인덕터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "POWER INDUCTOR",
+                        "POWER CHOKE",
+                        "DC-DC INDUCTOR"
+                    ]
+                },
+                "페라이트비드": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1206"
+                    ],
+                    "aliases": [
+                        "FERRITE BEAD",
+                        "FB",
+                        "EMI FILTER",
+                        "BEAD"
+                    ]
+                },
+                "공통모드초크": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "COMMON MODE CHOKE",
+                        "CMC",
+                        "CM CHOKE",
+                        "LINE FILTER"
+                    ]
+                }
+            },
+            "변압기": {
+                "트랜스포머": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "TRANSFORMER",
+                        "TRANS",
+                        "XFMR"
+                    ]
+                },
+                "펄스트랜스": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PULSE TRANSFORMER",
+                        "LAN TRANSFORMER",
+                        "ETHERNET TRANSFORMER"
+                    ]
+                }
+            }
+        },
+        "반도체": {
+            "다이오드": {
+                "정류다이오드": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-35",
+                        "DO-214",
+                        "SOD-123",
+                        "SOD-323",
+                        "SMA",
+                        "SMB",
+                        "SMC"
+                    ],
+                    "aliases": [
+                        "RECTIFIER",
+                        "DIODE",
+                        "RECTIFIER DIODE"
+                    ]
+                },
+                "제너다이오드": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DO-35",
+                        "SOD-123",
+                        "SOD-323",
+                        "SOT-23"
+                    ],
+                    "aliases": [
+                        "ZENER",
+                        "ZENER DIODE",
+                        "VOLTAGE REFERENCE"
+                    ]
+                },
+                "쇼트키다이오드": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-214",
+                        "SMA",
+                        "SMB",
+                        "SOD-123"
+                    ],
+                    "aliases": [
+                        "SCHOTTKY",
+                        "SCHOTTKY DIODE",
+                        "BARRIER DIODE"
+                    ]
+                },
+                "TVS다이오드": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DO-214",
+                        "SMA",
+                        "SMB",
+                        "SMAJ",
+                        "SMBJ",
+                        "SOD-123"
+                    ],
+                    "aliases": [
+                        "TVS",
+                        "ESD",
+                        "TRANSIENT",
+                        "SURGE PROTECTOR",
+                        "ESD DIODE"
+                    ]
+                },
+                "LED": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1206",
+                        "3528",
+                        "5050",
+                        "3mm",
+                        "5mm"
+                    ],
+                    "aliases": [
+                        "LED",
+                        "LIGHT EMITTING DIODE",
+                        "SMD LED",
+                        "CHIP LED"
+                    ]
+                },
+                "적외선LED": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT",
+                        "3mm",
+                        "5mm"
+                    ],
+                    "aliases": [
+                        "IR LED",
+                        "INFRARED LED",
+                        "IRED"
+                    ]
+                },
+                "포토다이오드": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PHOTODIODE",
+                        "PHOTO DIODE",
+                        "PD"
+                    ]
+                },
+                "브리지다이오드": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "BRIDGE RECTIFIER",
+                        "DIODE BRIDGE",
+                        "FULL BRIDGE"
+                    ]
+                }
+            },
+            "트랜지스터": {
+                "BJT-NPN": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "SOT-89",
+                        "SOT-223",
+                        "TO-92",
+                        "TO-220"
+                    ],
+                    "aliases": [
+                        "NPN",
+                        "NPN TRANSISTOR",
+                        "BIPOLAR NPN"
+                    ]
+                },
+                "BJT-PNP": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "SOT-89",
+                        "SOT-223",
+                        "TO-92",
+                        "TO-220"
+                    ],
+                    "aliases": [
+                        "PNP",
+                        "PNP TRANSISTOR",
+                        "BIPOLAR PNP"
+                    ]
+                },
+                "N-MOSFET": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "SOT-223",
+                        "DPAK",
+                        "D2PAK",
+                        "TO-220",
+                        "TO-247",
+                        "QFN",
+                        "LFPAK"
+                    ],
+                    "aliases": [
+                        "N-MOSFET",
+                        "NMOS",
+                        "N-CH MOSFET",
+                        "N-CHANNEL"
+                    ]
+                },
+                "P-MOSFET": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "SOT-223",
+                        "DPAK",
+                        "D2PAK",
+                        "TO-220",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "P-MOSFET",
+                        "PMOS",
+                        "P-CH MOSFET",
+                        "P-CHANNEL"
+                    ]
+                },
+                "IGBT": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "TO-247",
+                        "TO-220",
+                        "D2PAK",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "IGBT",
+                        "INSULATED GATE"
+                    ]
+                },
+                "JFET": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "TO-92"
+                    ],
+                    "aliases": [
+                        "JFET",
+                        "JUNCTION FET"
+                    ]
+                },
+                "다링톤": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "TO-92",
+                        "TO-220"
+                    ],
+                    "aliases": [
+                        "DARLINGTON",
+                        "DARLINGTON PAIR"
+                    ]
+                },
+                "포토트랜지스터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PHOTOTRANSISTOR",
+                        "PHOTO TRANSISTOR",
+                        "PT"
+                    ]
+                }
+            },
+            "다이오드": {
+                "다이오드-일반-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMA",
+                        "SMB",
+                        "SMC",
+                        "SOD-123",
+                        "MELF",
+                        "DO-214AC"
+                    ],
+                    "aliases": [
+                        "RECTIFIER DIODE",
+                        "GEN PURP DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "GS1M",
+                        "RS1M",
+                        "SM4007",
+                        "S1A",
+                        "S1B",
+                        "S1D",
+                        "S1G",
+                        "S1J",
+                        "S1K",
+                        "S1M"
+                    ]
+                },
+                "다이오드-일반-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-15",
+                        "AXIAL",
+                        "DO-204AL"
+                    ],
+                    "aliases": [
+                        "RECTIFIER DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "1N4001",
+                        "1N4002",
+                        "1N4003",
+                        "1N4004",
+                        "1N4005",
+                        "1N4006",
+                        "1N4007",
+                        "1N5400",
+                        "1N5401",
+                        "1N5408",
+                        "1N539"
+                    ]
+                },
+                "다이오드-스위칭-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOD-123",
+                        "SOD-323",
+                        "SOD-523",
+                        "SOT-23",
+                        "MiniMELF",
+                        "LL34"
+                    ],
+                    "aliases": [
+                        "SWITCHING DIODE",
+                        "FAST RECOVERY"
+                    ],
+                    "mpn_patterns": [
+                        "LL4148",
+                        "1N4148W",
+                        "1N4148WS",
+                        "1N4148WT",
+                        "BAV99",
+                        "BAV70",
+                        "MMBD4148",
+                        "BAS16",
+                        "BAS21"
+                    ]
+                },
+                "다이오드-스위칭-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-35",
+                        "DO-34",
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "SWITCHING DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "1N4148",
+                        "1N914",
+                        "1N4448"
+                    ]
+                },
+                "다이오드-쇼트키-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMA",
+                        "SMB",
+                        "SMC",
+                        "SOD-123",
+                        "SOT-23"
+                    ],
+                    "aliases": [
+                        "SCHOTTKY"
+                    ],
+                    "mpn_patterns": [
+                        "SS12",
+                        "SS13",
+                        "SS14",
+                        "SS24",
+                        "SS34",
+                        "MBRS130",
+                        "MBRS140",
+                        "BAT54",
+                        "BAT54S",
+                        "B140",
+                        "B240",
+                        "B340",
+                        "SR160",
+                        "1N5819HW"
+                    ]
+                },
+                "다이오드-쇼트키-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-15",
+                        "DO-201AD",
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "SCHOTTKY"
+                    ],
+                    "mpn_patterns": [
+                        "1N5817",
+                        "1N5818",
+                        "1N5819",
+                        "1N5820",
+                        "1N5821",
+                        "1N5822",
+                        "SB140",
+                        "SB240",
+                        "SB340",
+                        "SR160",
+                        "SR360",
+                        "SR560"
+                    ]
+                },
+                "다이오드-제너-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOT-23",
+                        "SOD-123",
+                        "SMA"
+                    ],
+                    "aliases": [
+                        "ZENER DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "BZX84",
+                        "BZT52",
+                        "MMSZ",
+                        "SMAZ",
+                        "ZM47"
+                    ]
+                },
+                "다이오드-제너-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-35",
+                        "AXIAL"
+                    ],
+                    "aliases": [
+                        "ZENER DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "1N4728",
+                        "1N4729",
+                        "1N4730",
+                        "1N4731",
+                        "1N4732",
+                        "1N4733",
+                        "1N4734",
+                        "1N4735",
+                        "1N4736",
+                        "1N4737",
+                        "1N4738",
+                        "1N4739",
+                        "1N4740",
+                        "1N4741",
+                        "1N4742",
+                        "1N4743",
+                        "1N4744",
+                        "1N4745",
+                        "1N4746",
+                        "1N4747",
+                        "1N4748",
+                        "1N4749",
+                        "1N4750",
+                        "1N52"
+                    ]
+                }
+            },
+            "IC": {
+                "LinearRegulator": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "TO-220",
+                        "D2PAK",
+                        "DPAK",
+                        "SOT-223",
+                        "SOT-89",
+                        "TO-92",
+                        "SO-8"
+                    ],
+                    "aliases": [
+                        "LINEAR REGULATOR",
+                        "LDO",
+                        "VOLTAGE REGULATOR"
+                    ],
+                    "mpn_patterns": [
+                        "LM7805",
+                        "LM7806",
+                        "LM7808",
+                        "LM7809",
+                        "LM7810",
+                        "LM7812",
+                        "LM7815",
+                        "LM7818",
+                        "LM7824",
+                        "LM7905",
+                        "LM7906",
+                        "LM7908",
+                        "LM7909",
+                        "LM7912",
+                        "LM7915",
+                        "LM7918",
+                        "LM7924",
+                        "LM1117",
+                        "AMS1117",
+                        "LD1117",
+                        "LM317",
+                        "LM337",
+                        "MC7805",
+                        "MC7905",
+                        "KA7805",
+                        "L7805",
+                        "L7812",
+                        "L7905",
+                        "L7912"
+                    ]
+                },
+                "마이크로컨트롤러": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TQFP",
+                        "LQFP",
+                        "QFN",
+                        "BGA"
+                    ],
+                    "aliases": [
+                        "MCU",
+                        "MICROCONTROLLER",
+                        "CPU",
+                        "MPU",
+                        "PROCESSOR"
+                    ]
+                },
+                "연산증폭기": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-8",
+                        "SOIC-8",
+                        "SOT-23-5",
+                        "MSOP-8",
+                        "TSSOP"
+                    ],
+                    "aliases": [
+                        "OPAMP",
+                        "OP-AMP",
+                        "OP AMP",
+                        "OPERATIONAL AMPLIFIER"
+                    ]
+                },
+                "비교기": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-8",
+                        "SOIC-8",
+                        "SOT-23-5"
+                    ],
+                    "aliases": [
+                        "COMPARATOR",
+                        "COMP"
+                    ]
+                },
+                "전압레귤레이터-78xx": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-252",
+                        "TO-263",
+                        "SOT-223",
+                        "SOT-89"
+                    ],
+                    "aliases": [
+                        "78xx",
+                        "7805",
+                        "7809",
+                        "7812",
+                        "7815",
+                        "7824",
+                        "LM78xx",
+                        "MC78xx",
+                        "L78xx",
+                        "UA78xx",
+                        "78M",
+                        "78L"
+                    ],
+                    "mpn_patterns": [
+                        "LM7805",
+                        "LM7806",
+                        "LM7808",
+                        "LM7809",
+                        "LM7812",
+                        "LM7815",
+                        "LM7818",
+                        "LM7824",
+                        "MC7805",
+                        "MC7812",
+                        "L7805",
+                        "L7812",
+                        "78M05",
+                        "78M09",
+                        "78M12",
+                        "78L05",
+                        "78L09",
+                        "78L12"
+                    ]
+                },
+                "전압레귤레이터-79xx": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-252",
+                        "TO-263"
+                    ],
+                    "aliases": [
+                        "79xx",
+                        "7905",
+                        "7909",
+                        "7912",
+                        "7915",
+                        "7924",
+                        "LM79xx",
+                        "MC79xx",
+                        "L79xx"
+                    ],
+                    "mpn_patterns": [
+                        "LM7905",
+                        "LM7906",
+                        "LM7908",
+                        "LM7909",
+                        "LM7912",
+                        "LM7915",
+                        "LM7918",
+                        "LM7924",
+                        "MC7905",
+                        "MC7912",
+                        "L7905",
+                        "L7912",
+                        "79M05",
+                        "79M12",
+                        "79L05"
+                    ]
+                },
+                "LDO레귤레이터": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOT-223",
+                        "SOT-23",
+                        "SOT-89",
+                        "TO-252",
+                        "SOIC-8",
+                        "DFN",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "LDO",
+                        "LOW DROPOUT",
+                        "LOW DROP OUT",
+                        "LINEAR REGULATOR",
+                        "AMS1117",
+                        "LP2985",
+                        "LP2950",
+                        "MCP1700",
+                        "MIC5205",
+                        "AP2112",
+                        "RT9013",
+                        "TLV733",
+                        "XC6206",
+                        "HT7333",
+                        "HT7350",
+                        "ME6211",
+                        "SPX3819"
+                    ],
+                    "mpn_patterns": [
+                        "AMS1117-1.2",
+                        "AMS1117-1.5",
+                        "AMS1117-1.8",
+                        "AMS1117-2.5",
+                        "AMS1117-3.3",
+                        "AMS1117-5.0",
+                        "AMS1117-ADJ",
+                        "LP2985-33",
+                        "LP2985-50",
+                        "LP2985AIM5-3.3",
+                        "LP2950-33",
+                        "LP2950-50",
+                        "MCP1700-3302E",
+                        "MIC5205-3.3YM5",
+                        "AP2112K-3.3",
+                        "RT9013-33GB",
+                        "TLV733P",
+                        "XC6206P332MR",
+                        "HT7333-A",
+                        "HT7350-A",
+                        "ME6211C33M5G",
+                        "SPX3819M5-L-3-3"
+                    ]
+                },
+                "전압레귤레이터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-92",
+                        "SOT-23",
+                        "SOT-89",
+                        "SOT-223",
+                        "DPAK",
+                        "D2PAK",
+                        "TO-252",
+                        "TO-263"
+                    ],
+                    "aliases": [
+                        "REGULATOR",
+                        "REG",
+                        "VOLTAGE REGULATOR",
+                        "VREG",
+                        "V-REG",
+                        "LINEAR REG",
+                        "FIXED REG"
+                    ],
+                    "mpn_patterns": []
+                },
+                "DC-DC컨버터-벅": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOIC-8",
+                        "SOIC-14",
+                        "HSOP",
+                        "QFN",
+                        "MSOP",
+                        "DFN",
+                        "TO-263",
+                        "TO-220",
+                        "TO-252"
+                    ],
+                    "aliases": [
+                        "BUCK",
+                        "STEP DOWN",
+                        "STEP-DOWN",
+                        "BUCK CONVERTER",
+                        "BUCK REG",
+                        "SWITCHING REG",
+                        "SMPS"
+                    ],
+                    "mpn_patterns": [
+                        "TPS5430",
+                        "TPS5450",
+                        "TPS54160",
+                        "TPS54240",
+                        "TPS54331",
+                        "TPS54360",
+                        "TPS562200",
+                        "MP1584",
+                        "MP2307",
+                        "MP2315",
+                        "MP2359",
+                        "XL4015",
+                        "XL4016",
+                        "XL7015",
+                        "LM3150",
+                        "LTC3780",
+                        "ADP2302",
+                        "ADP2303",
+                        "RT8259",
+                        "SY8120"
+                    ]
+                },
+                "DC-DC컨버터-벅-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "TO-263",
+                        "TO-252",
+                        "D2PAK",
+                        "DPAK"
+                    ],
+                    "aliases": [
+                        "LM2596S",
+                        "LM2576S",
+                        "LM2674M",
+                        "LM2675M"
+                    ],
+                    "mpn_patterns": [
+                        "LM2596S",
+                        "LM2576S",
+                        "LM2576HVS",
+                        "LM2596HVS",
+                        "LM2674M",
+                        "LM2675M"
+                    ]
+                },
+                "DC-DC컨버터-벅-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-220-5"
+                    ],
+                    "aliases": [
+                        "LM2596T",
+                        "LM2576T",
+                        "LM2674",
+                        "LM2675"
+                    ],
+                    "mpn_patterns": [
+                        "LM2596T",
+                        "LM2576T",
+                        "LM2576HVT",
+                        "LM2596HVT",
+                        "LM2576-5.0",
+                        "LM2576-12",
+                        "LM2576-ADJ",
+                        "LM2596-5.0",
+                        "LM2596-12",
+                        "LM2596-ADJ"
+                    ]
+                },
+                "DC-DC컨버터-부스트": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOT-23",
+                        "SOT-23-6",
+                        "SOIC-8",
+                        "MSOP",
+                        "QFN",
+                        "DFN"
+                    ],
+                    "aliases": [
+                        "BOOST",
+                        "STEP UP",
+                        "STEP-UP",
+                        "BOOST CONVERTER",
+                        "BOOST REG"
+                    ],
+                    "mpn_patterns": [
+                        "TPS61040",
+                        "TPS61070",
+                        "TPS61088",
+                        "TPS61032",
+                        "TPS61200",
+                        "MT3608",
+                        "SX1308",
+                        "FP6291",
+                        "LM2731",
+                        "LM2733",
+                        "LT1930",
+                        "LT3467",
+                        "MCP1640",
+                        "MIC2250",
+                        "NCP1402",
+                        "PAM2401",
+                        "TLV61220",
+                        "XL6019"
+                    ]
+                },
+                "DC-DC컨버터-벅부스트": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOIC-8",
+                        "MSOP",
+                        "QFN",
+                        "DFN",
+                        "TSSOP"
+                    ],
+                    "aliases": [
+                        "BUCK-BOOST",
+                        "BUCK BOOST",
+                        "SEPIC",
+                        "INVERTING"
+                    ],
+                    "mpn_patterns": [
+                        "TPS63000",
+                        "TPS63020",
+                        "TPS63060",
+                        "TPS63070",
+                        "LTC3780",
+                        "LTC3789",
+                        "LT3790",
+                        "LM3668",
+                        "LM5118",
+                        "MP3423",
+                        "TPS55340",
+                        "ADP5070"
+                    ]
+                },
+                "DC-DC컨버터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOIC",
+                        "QFN",
+                        "MSOP",
+                        "MODULE",
+                        "SIP",
+                        "DIP"
+                    ],
+                    "aliases": [
+                        "DC-DC",
+                        "DCDC",
+                        "DC DC",
+                        "CONVERTER",
+                        "POWER CONVERTER",
+                        "SWITCHING",
+                        "SW REG"
+                    ],
+                    "mpn_patterns": []
+                },
+                "모터드라이버": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOIC",
+                        "TSSOP",
+                        "QFN",
+                        "DIP",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "MOTOR DRIVER",
+                        "H-BRIDGE",
+                        "GATE DRIVER"
+                    ]
+                },
+                "LED드라이버": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SOIC",
+                        "SOT-23",
+                        "QFN",
+                        "MSOP"
+                    ],
+                    "aliases": [
+                        "LED DRIVER",
+                        "CONSTANT CURRENT"
+                    ]
+                },
+                "ADC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSSOP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "ADC",
+                        "A/D CONVERTER",
+                        "ANALOG TO DIGITAL"
+                    ]
+                },
+                "DAC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSSOP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "DAC",
+                        "D/A CONVERTER",
+                        "DIGITAL TO ANALOG"
+                    ]
+                },
+                "메모리": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSOP",
+                        "BGA",
+                        "WSON"
+                    ],
+                    "aliases": [
+                        "MEMORY",
+                        "EEPROM",
+                        "FLASH",
+                        "SRAM",
+                        "DRAM",
+                        "ROM",
+                        "EPROM"
+                    ]
+                },
+                "로직IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSSOP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "LOGIC",
+                        "LOGIC IC",
+                        "74HC",
+                        "74LS",
+                        "74LVC",
+                        "GATE",
+                        "BUFFER",
+                        "INVERTER",
+                        "FLIP-FLOP",
+                        "COUNTER",
+                        "SHIFT REGISTER",
+                        "MULTIPLEXER",
+                        "DEMUX"
+                    ]
+                },
+                "FPGA": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "BGA",
+                        "QFP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "FPGA",
+                        "CPLD",
+                        "PLD",
+                        "PROGRAMMABLE LOGIC"
+                    ]
+                },
+                "통신IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSSOP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "UART",
+                        "SPI",
+                        "I2C",
+                        "CAN",
+                        "RS232",
+                        "RS485",
+                        "USB",
+                        "ETHERNET",
+                        "TRANSCEIVER",
+                        "PHY"
+                    ]
+                },
+                "타이머IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-8",
+                        "SOIC-8"
+                    ],
+                    "aliases": [
+                        "TIMER",
+                        "555",
+                        "NE555",
+                        "LM555"
+                    ]
+                },
+                "전원IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "QFN",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "PMIC",
+                        "POWER MANAGEMENT",
+                        "POWER IC",
+                        "PMU"
+                    ]
+                },
+                "오디오IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "TSSOP",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "AUDIO",
+                        "AUDIO AMP",
+                        "AUDIO CODEC",
+                        "CLASS D",
+                        "CLASS AB"
+                    ]
+                },
+                "센서IC": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SOIC",
+                        "QFN",
+                        "LGA"
+                    ],
+                    "aliases": [
+                        "SENSOR",
+                        "TEMPERATURE SENSOR",
+                        "ACCELEROMETER",
+                        "GYROSCOPE",
+                        "IMU",
+                        "HALL SENSOR",
+                        "CURRENT SENSOR"
+                    ]
+                }
+            },
+            "사이리스터": {
+                "SCR": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-92",
+                        "D2PAK"
+                    ],
+                    "aliases": [
+                        "SCR",
+                        "SILICON CONTROLLED RECTIFIER",
+                        "THYRISTOR"
+                    ]
+                },
+                "TRIAC": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "TO-220",
+                        "TO-92",
+                        "D2PAK"
+                    ],
+                    "aliases": [
+                        "TRIAC",
+                        "BIDIRECTIONAL THYRISTOR"
+                    ]
+                },
+                "DIAC": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "TO-92"
+                    ],
+                    "aliases": [
+                        "DIAC",
+                        "TRIGGER DIODE"
+                    ]
+                }
+            },
+            "옵토커플러": {
+                "포토커플러": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-4",
+                        "DIP-6",
+                        "SOP-4",
+                        "SOP-6",
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "OPTOCOUPLER",
+                        "OPTO-COUPLER",
+                        "PHOTOCOUPLER",
+                        "OPTO ISOLATOR",
+                        "OPTOISOLATOR"
+                    ]
+                },
+                "포토릴레이": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-4",
+                        "SOP-4"
+                    ],
+                    "aliases": [
+                        "PHOTO RELAY",
+                        "SOLID STATE RELAY",
+                        "SSR"
+                    ]
+                },
+                "포토인터럽터": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PHOTO INTERRUPTER",
+                        "OPTICAL SWITCH",
+                        "SLOTTED SENSOR"
+                    ]
+                }
+            }
+        },
+        "커넥터": {
+            "보드커넥터": {
+                "핀헤더": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.54mm",
+                        "2.00mm",
+                        "1.27mm"
+                    ],
+                    "aliases": [
+                        "PIN HEADER",
+                        "HEADER",
+                        "MALE HEADER"
+                    ]
+                },
+                "소켓헤더": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.54mm",
+                        "2.00mm",
+                        "1.27mm"
+                    ],
+                    "aliases": [
+                        "SOCKET HEADER",
+                        "FEMALE HEADER",
+                        "RECEPTACLE"
+                    ]
+                },
+                "SMD헤더": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "2.54mm",
+                        "2.00mm",
+                        "1.27mm"
+                    ],
+                    "aliases": [
+                        "SMD HEADER",
+                        "SMT HEADER",
+                        "SMD PIN HEADER"
+                    ]
+                },
+                "박스헤더": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.54mm",
+                        "2.00mm"
+                    ],
+                    "aliases": [
+                        "BOX HEADER",
+                        "SHROUDED HEADER",
+                        "IDC HEADER"
+                    ]
+                },
+                "FPC커넥터": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0.5mm",
+                        "1.0mm",
+                        "1.25mm"
+                    ],
+                    "aliases": [
+                        "FPC",
+                        "FFC",
+                        "FLEXIBLE PCB CONNECTOR",
+                        "ZIF"
+                    ]
+                },
+                "보드투보드": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0.4mm",
+                        "0.5mm",
+                        "0.8mm",
+                        "1.0mm"
+                    ],
+                    "aliases": [
+                        "BOARD TO BOARD",
+                        "BTB",
+                        "MEZZANINE",
+                        "STACKING CONNECTOR"
+                    ]
+                }
+            },
+            "와이어커넥터": {
+                "JST-XH": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.50mm"
+                    ],
+                    "aliases": [
+                        "JST XH",
+                        "XH CONNECTOR"
+                    ]
+                },
+                "JST-PH": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "2.00mm"
+                    ],
+                    "aliases": [
+                        "JST PH",
+                        "PH CONNECTOR"
+                    ]
+                },
+                "JST-SH": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "1.00mm"
+                    ],
+                    "aliases": [
+                        "JST SH",
+                        "SH CONNECTOR"
+                    ]
+                },
+                "JST-GH": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "1.25mm"
+                    ],
+                    "aliases": [
+                        "JST GH",
+                        "GH CONNECTOR"
+                    ]
+                },
+                "JST-VH": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "3.96mm"
+                    ],
+                    "aliases": [
+                        "JST VH",
+                        "VH CONNECTOR"
+                    ]
+                },
+                "JST-EH": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.50mm"
+                    ],
+                    "aliases": [
+                        "JST EH",
+                        "EH CONNECTOR"
+                    ]
+                },
+                "Molex-Micro-Fit": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "3.0mm"
+                    ],
+                    "aliases": [
+                        "MICRO-FIT",
+                        "MICROFIT",
+                        "MOLEX 43045"
+                    ]
+                },
+                "Molex-Mini-Fit": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "4.2mm"
+                    ],
+                    "aliases": [
+                        "MINI-FIT",
+                        "MINIFIT",
+                        "MOLEX 39"
+                    ]
+                },
+                "Molex-PicoBlade": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "1.25mm"
+                    ],
+                    "aliases": [
+                        "PICOBLADE",
+                        "PICO-BLADE"
+                    ]
+                },
+                "Molex-SPOX": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "2.50mm"
+                    ],
+                    "aliases": [
+                        "SPOX",
+                        "MINI-SPOX"
+                    ]
+                },
+                "터미널블록": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "2.54mm",
+                        "3.5mm",
+                        "5.0mm",
+                        "5.08mm"
+                    ],
+                    "aliases": [
+                        "TERMINAL BLOCK",
+                        "SCREW TERMINAL",
+                        "BARRIER BLOCK",
+                        "PCB TERMINAL"
+                    ]
+                }
+            },
+            "통신커넥터": {
+                "USB-A": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "USB TYPE A",
+                        "USB-A",
+                        "USB A"
+                    ]
+                },
+                "USB-B": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "USB TYPE B",
+                        "USB-B",
+                        "USB B"
+                    ]
+                },
+                "USB-C": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "USB TYPE C",
+                        "USB-C",
+                        "USBC",
+                        "TYPE-C"
+                    ]
+                },
+                "Micro-USB": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "MICRO USB",
+                        "MICRO-USB",
+                        "USB MICRO"
+                    ]
+                },
+                "Mini-USB": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "MINI USB",
+                        "MINI-USB",
+                        "USB MINI"
+                    ]
+                },
+                "RJ45": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "RJ45",
+                        "ETHERNET JACK",
+                        "LAN JACK",
+                        "8P8C"
+                    ]
+                },
+                "RJ11": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "RJ11",
+                        "PHONE JACK",
+                        "6P6C",
+                        "6P4C"
+                    ]
+                },
+                "HDMI": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "HDMI",
+                        "HDMI CONNECTOR"
+                    ]
+                },
+                "DisplayPort": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "DISPLAYPORT",
+                        "DP CONNECTOR"
+                    ]
+                },
+                "D-Sub": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "D-SUB",
+                        "DSUB",
+                        "DB9",
+                        "DB15",
+                        "DB25",
+                        "VGA"
+                    ]
+                },
+                "SMA": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "SMA",
+                        "SMA CONNECTOR",
+                        "RF CONNECTOR"
+                    ]
+                },
+                "MCX": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "MCX",
+                        "MCX CONNECTOR"
+                    ]
+                },
+                "MMCX": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "MMCX",
+                        "MMCX CONNECTOR"
+                    ]
+                },
+                "U.FL": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "U.FL",
+                        "UFL",
+                        "IPEX",
+                        "IPX",
+                        "MHF"
+                    ]
+                }
+            },
+            "전원커넥터": {
+                "DC잭": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "DC JACK",
+                        "DC POWER JACK",
+                        "BARREL JACK",
+                        "DC SOCKET"
+                    ]
+                },
+                "전원헤더": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "POWER HEADER",
+                        "POWER CONNECTOR"
+                    ]
+                },
+                "XT30": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "XT30",
+                        "XT30 CONNECTOR"
+                    ]
+                },
+                "XT60": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "XT60",
+                        "XT60 CONNECTOR"
+                    ]
+                },
+                "Anderson": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "ANDERSON",
+                        "POWERPOLE",
+                        "SB CONNECTOR"
+                    ]
+                }
+            },
+            "카드커넥터": {
+                "SD카드": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "SD CARD",
+                        "SD SLOT",
+                        "SD SOCKET",
+                        "MICRO SD",
+                        "TF CARD"
+                    ]
+                },
+                "SIM카드": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "SIM CARD",
+                        "SIM SOCKET",
+                        "NANO SIM",
+                        "MICRO SIM"
+                    ]
+                },
+                "M.2": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "M.2",
+                        "NGFF",
+                        "M.2 CONNECTOR"
+                    ]
+                }
+            },
+            "오디오커넥터": {
+                "3.5mm잭": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "AUDIO JACK",
+                        "3.5MM JACK",
+                        "STEREO JACK",
+                        "HEADPHONE JACK"
+                    ]
+                },
+                "스피커커넥터": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "SPEAKER CONNECTOR",
+                        "SPEAKER TERMINAL"
+                    ]
+                }
+            }
+        },
+        "기구부품": {
+            "크리스탈": {
+                "수정진동자": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "HC49",
+                        "HC49S",
+                        "3215",
+                        "2520",
+                        "5032",
+                        "7050"
+                    ],
+                    "aliases": [
+                        "CRYSTAL",
+                        "XTAL",
+                        "QUARTZ"
+                    ]
+                },
+                "세라믹진동자": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "CERAMIC RESONATOR",
+                        "RESONATOR"
+                    ]
+                },
+                "오실레이터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP-8",
+                        "DIP-14",
+                        "SMD",
+                        "5x7",
+                        "7x5",
+                        "3.2x2.5"
+                    ],
+                    "aliases": [
+                        "OSCILLATOR",
+                        "OSC",
+                        "TCXO",
+                        "VCXO",
+                        "XO"
+                    ]
+                }
+            },
+            "스위치": {
+                "택트스위치": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "TACT SWITCH",
+                        "TACTILE SWITCH",
+                        "PUSH BUTTON",
+                        "TACT SW"
+                    ]
+                },
+                "DIP스위치": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "DIP SWITCH",
+                        "PIANO SWITCH"
+                    ]
+                },
+                "슬라이드스위치": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "SLIDE SWITCH",
+                        "SLIDER SWITCH"
+                    ]
+                },
+                "로터리스위치": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "ROTARY SWITCH",
+                        "ROTARY ENCODER",
+                        "ENCODER"
+                    ]
+                },
+                "토글스위치": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "TOGGLE SWITCH",
+                        "SPST",
+                        "SPDT",
+                        "DPDT"
+                    ]
+                },
+                "마이크로스위치": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "MICRO SWITCH",
+                        "LIMIT SWITCH",
+                        "SNAP SWITCH"
+                    ]
+                }
+            },
+            "릴레이": {
+                "전자계전기": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SIP",
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "RELAY",
+                        "ELECTROMAGNETIC RELAY",
+                        "EMR"
+                    ]
+                },
+                "SSR": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "DIP",
+                        "SMD",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "SOLID STATE RELAY",
+                        "SSR"
+                    ]
+                },
+                "리드릴레이": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "SIP"
+                    ],
+                    "aliases": [
+                        "REED RELAY",
+                        "REED SWITCH"
+                    ]
+                }
+            },
+            "퓨즈": {
+                "카트리지퓨즈": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT",
+                        "5x20mm",
+                        "6x30mm"
+                    ],
+                    "aliases": [
+                        "FUSE",
+                        "CARTRIDGE FUSE",
+                        "GLASS FUSE"
+                    ]
+                },
+                "칩퓨즈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "0402",
+                        "0603",
+                        "0805",
+                        "1206",
+                        "1812"
+                    ],
+                    "aliases": [
+                        "CHIP FUSE",
+                        "SMD FUSE",
+                        "SURFACE MOUNT FUSE"
+                    ]
+                },
+                "폴리퓨즈": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "POLYFUSE",
+                        "RESETTABLE FUSE",
+                        "PPTC",
+                        "PTC FUSE"
+                    ]
+                },
+                "퓨즈홀더": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "FUSE HOLDER",
+                        "FUSE CLIP",
+                        "FUSE SOCKET"
+                    ]
+                }
+            },
+            "버저": {
+                "피에조버저": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "BUZZER",
+                        "PIEZO BUZZER",
+                        "PIEZO"
+                    ]
+                },
+                "마그네틱버저": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "MAGNETIC BUZZER",
+                        "ELECTROMAGNETIC BUZZER"
+                    ]
+                },
+                "스피커": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "SPEAKER",
+                        "MICRO SPEAKER"
+                    ]
+                }
+            },
+            "안테나": {
+                "칩안테나": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "CHIP ANTENNA",
+                        "SMD ANTENNA",
+                        "CERAMIC ANTENNA"
+                    ]
+                },
+                "PCB안테나": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "PCB ANTENNA",
+                        "PRINTED ANTENNA"
+                    ]
+                },
+                "외장안테나": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "EXTERNAL ANTENNA",
+                        "WHIP ANTENNA",
+                        "DIPOLE ANTENNA"
+                    ]
+                }
+            },
+            "센서": {
+                "온도센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "TO-92",
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "TEMPERATURE SENSOR",
+                        "THERMOMETER",
+                        "NTC SENSOR"
+                    ]
+                },
+                "습도센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "HUMIDITY SENSOR",
+                        "RH SENSOR"
+                    ]
+                },
+                "압력센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PRESSURE SENSOR",
+                        "BAROMETER"
+                    ]
+                },
+                "가속도센서": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "LGA",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "ACCELEROMETER",
+                        "G-SENSOR",
+                        "MOTION SENSOR"
+                    ]
+                },
+                "자이로센서": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "LGA",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "GYROSCOPE",
+                        "GYRO SENSOR"
+                    ]
+                },
+                "IMU": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "LGA",
+                        "QFN"
+                    ],
+                    "aliases": [
+                        "IMU",
+                        "INERTIAL MEASUREMENT UNIT",
+                        "6-AXIS",
+                        "9-AXIS"
+                    ]
+                },
+                "근접센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "PROXIMITY SENSOR",
+                        "IR SENSOR"
+                    ]
+                },
+                "조도센서": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "LIGHT SENSOR",
+                        "AMBIENT LIGHT SENSOR",
+                        "ALS",
+                        "LDR"
+                    ]
+                },
+                "홀센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOT-23",
+                        "TO-92"
+                    ],
+                    "aliases": [
+                        "HALL SENSOR",
+                        "HALL EFFECT SENSOR",
+                        "MAGNETIC SENSOR"
+                    ]
+                },
+                "전류센서": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SOIC",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "CURRENT SENSOR",
+                        "CURRENT SENSE",
+                        "SHUNT"
+                    ]
+                },
+                "가스센서": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "GAS SENSOR",
+                        "CO2 SENSOR",
+                        "VOC SENSOR"
+                    ]
+                }
+            },
+            "기타": {
+                "바리스터": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "RADIAL"
+                    ],
+                    "aliases": [
+                        "VARISTOR",
+                        "MOV",
+                        "METAL OXIDE VARISTOR"
+                    ]
+                },
+                "테스트포인트": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "TEST POINT",
+                        "TP",
+                        "TEST PAD"
+                    ]
+                },
+                "점퍼": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "JUMPER",
+                        "WIRE JUMPER",
+                        "ZERO OHM"
+                    ]
+                },
+                "LED바": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "LED BAR",
+                        "BARGRAPH",
+                        "LED ARRAY"
+                    ]
+                },
+                "7세그먼트": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "7-SEGMENT",
+                        "7SEG",
+                        "SEVEN SEGMENT",
+                        "DISPLAY"
+                    ]
+                },
+                "배터리홀더": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "BATTERY HOLDER",
+                        "COIN CELL HOLDER",
+                        "CR2032 HOLDER"
+                    ]
+                },
+                "방열판": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT"
+                    ],
+                    "aliases": [
+                        "HEATSINK",
+                        "HEAT SINK",
+                        "THERMAL PAD"
+                    ]
+                }
+            }
+        },
+        "모듈": {
+            "통신모듈": {
+                "WiFi모듈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "WIFI MODULE",
+                        "WIFI",
+                        "ESP32",
+                        "ESP8266",
+                        "WLAN"
+                    ]
+                },
+                "블루투스모듈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "BLUETOOTH",
+                        "BLE MODULE",
+                        "BT MODULE"
+                    ]
+                },
+                "LoRa모듈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "LORA",
+                        "LORA MODULE",
+                        "LORAWAN"
+                    ]
+                },
+                "GPS모듈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "GPS",
+                        "GPS MODULE",
+                        "GNSS",
+                        "GNSS MODULE"
+                    ]
+                },
+                "LTE모듈": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "SMD"
+                    ],
+                    "aliases": [
+                        "LTE MODULE",
+                        "4G MODULE",
+                        "CELLULAR MODULE"
+                    ]
+                },
+                "RF모듈": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "RF MODULE",
+                        "RADIO MODULE",
+                        "WIRELESS MODULE"
+                    ]
+                }
+            },
+            "전원모듈": {
+                "DC-DC모듈": {
+                    "mounting": "SMD/DIP",
+                    "packages": [
+                        "SMD",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "DC-DC MODULE",
+                        "POWER MODULE",
+                        "BUCK MODULE",
+                        "BOOST MODULE"
+                    ]
+                },
+                "AC-DC모듈": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "THT",
+                        "MODULE"
+                    ],
+                    "aliases": [
+                        "AC-DC MODULE",
+                        "POWER SUPPLY",
+                        "PSU MODULE"
+                    ]
+                }
+            }
+        }
+    },
+    "package_mounting_map": {
+        "SMD": [
+            "0201",
+            "01005",
+            "0402",
+            "0603",
+            "0805",
+            "1005",
+            "1206",
+            "1210",
+            "1218",
+            "1812",
+            "1825",
+            "2010",
+            "2012",
+            "2512",
+            "2220",
+            "2225",
+            "3216",
+            "3225",
+            "4532",
+            "5025",
+            "6332",
+            "SOT-23",
+            "SOT-23-3",
+            "SOT-23-5",
+            "SOT-23-6",
+            "SOT-89",
+            "SOT-143",
+            "SOT-223",
+            "SOT-323",
+            "SOT-363",
+            "SOT-523",
+            "SOT-563",
+            "SOT-723",
+            "SOT-883",
+            "SOT-953",
+            "SOD-123",
+            "SOD-323",
+            "SOD-523",
+            "SOD-723",
+            "SOD-923",
+            "SOD-128",
+            "SOD-80",
+            "SOD-882",
+            "SODFL",
+            "SC-70",
+            "SC-88",
+            "SC-89",
+            "SC-90",
+            "SC-59",
+            "SC-74",
+            "SC-75",
+            "SOIC",
+            "SOIC-8",
+            "SOIC-14",
+            "SOIC-16",
+            "SOIC-20",
+            "SOIC-24",
+            "SOIC-28",
+            "SOP",
+            "SOP-8",
+            "SOP-16",
+            "SOP-24",
+            "SO-8",
+            "SO-14",
+            "SO-16",
+            "SO-20",
+            "SO-24",
+            "SO-28",
+            "SSOP",
+            "TSSOP",
+            "TSSOP-8",
+            "TSSOP-14",
+            "TSSOP-16",
+            "TSSOP-20",
+            "TSSOP-24",
+            "TSSOP-28",
+            "TSOP",
+            "MSOP",
+            "MSOP-8",
+            "MSOP-10",
+            "QSOP",
+            "VSOP",
+            "HSOP",
+            "QFN",
+            "QFN-8",
+            "QFN-16",
+            "QFN-20",
+            "QFN-24",
+            "QFN-32",
+            "QFN-40",
+            "QFN-48",
+            "QFN-64",
+            "VQFN",
+            "WQFN",
+            "TQFN",
+            "UQFN",
+            "HVQFN",
+            "AQFN",
+            "QFP",
+            "TQFP",
+            "LQFP",
+            "MQFP",
+            "PQFP",
+            "CQFP",
+            "HQFP",
+            "EQFP",
+            "FQFP",
+            "TQFP-32",
+            "TQFP-44",
+            "TQFP-48",
+            "TQFP-64",
+            "TQFP-100",
+            "TQFP-144",
+            "LQFP-32",
+            "LQFP-48",
+            "LQFP-64",
+            "LQFP-100",
+            "LQFP-144",
+            "LQFP-176",
+            "LQFP-208",
+            "DFN",
+            "DFN-6",
+            "DFN-8",
+            "SON",
+            "WSON",
+            "VSON",
+            "UDFN",
+            "XDFN",
+            "TDFN",
+            "BGA",
+            "FBGA",
+            "PBGA",
+            "CBGA",
+            "TBGA",
+            "UBGA",
+            "MBGA",
+            "LFBGA",
+            "TFBGA",
+            "VFBGA",
+            "UFBGA",
+            "DSBGA",
+            "WLCSP",
+            "CSP",
+            "FCBGA",
+            "μBGA",
+            "MICROBGA",
+            "FC-BGA",
+            "MAPBGA",
+            "LGA",
+            "PLCC",
+            "CLCC",
+            "LCC",
+            "LLCC",
+            "DPAK",
+            "D2PAK",
+            "D-PAK",
+            "D2-PAK",
+            "TO-252",
+            "TO-263",
+            "TO-268",
+            "LFPAK",
+            "LFPAK33",
+            "LFPAK56",
+            "LFPAK88",
+            "PowerPAK",
+            "PowerFLAT",
+            "I-PAK",
+            "IPAK",
+            "TO-251AA",
+            "DO-214",
+            "DO-214AA",
+            "DO-214AB",
+            "DO-214AC",
+            "DO-218",
+            "DO-219",
+            "DO-221",
+            "SMA",
+            "SMB",
+            "SMC",
+            "SMAJ",
+            "SMBJ",
+            "SMCJ",
+            "MELF",
+            "MINIMELF",
+            "MICROMELF",
+            "SOD-80",
+            "SOD-87",
+            "LFCSP",
+            "FCSP",
+            "WLGA",
+            "UTQFN",
+            "XSON",
+            "SMD",
+            "SMT",
+            "CHIP"
+        ],
+        "DIP": [
+            "DIP",
+            "DIP-4",
+            "DIP-6",
+            "DIP-8",
+            "DIP-14",
+            "DIP-16",
+            "DIP-18",
+            "DIP-20",
+            "DIP-24",
+            "DIP-28",
+            "DIP-32",
+            "DIP-40",
+            "DIP-48",
+            "DIP-64",
+            "PDIP",
+            "CDIP",
+            "SDIP",
+            "HDIP",
+            "SPDIP",
+            "SKINNY DIP",
+            "SHRINK DIP",
+            "SIP",
+            "SIP-4",
+            "SIP-6",
+            "SIP-8",
+            "SIP-9",
+            "SIP-10",
+            "ZIP",
+            "PGA",
+            "CPGA",
+            "PPGA",
+            "FCPGA",
+            "SPGA",
+            "OPGA",
+            "TO-3",
+            "TO-5",
+            "TO-18",
+            "TO-39",
+            "TO-66",
+            "TO-99",
+            "TO-92",
+            "TO-92L",
+            "TO-92MOD",
+            "TO-126",
+            "TO-127",
+            "TO-220",
+            "TO-220F",
+            "TO-220AB",
+            "TO-220AC",
+            "TO-220FP",
+            "TO-220-3",
+            "TO-220-5",
+            "TO-247",
+            "TO-247AC",
+            "TO-247AD",
+            "TO-247-3",
+            "TO-251",
+            "TO-262",
+            "TO-264",
+            "DO-4",
+            "DO-5",
+            "DO-15",
+            "DO-27",
+            "DO-34",
+            "DO-35",
+            "DO-41",
+            "DO-201",
+            "DO-201AD",
+            "DO-204",
+            "AXIAL",
+            "RADIAL",
+            "AXIAL LEAD",
+            "RADIAL LEAD",
+            "HC49",
+            "HC49U",
+            "HC18",
+            "HC6",
+            "HC51",
+            "HC52",
+            "THT",
+            "TH",
+            "PTH",
+            "THROUGH-HOLE",
+            "THROUGH HOLE",
+            "LEADED"
+        ]
+    },
+    "component_keywords": [
+        "IC",
+        "MCU",
+        "CPU",
+        "MPU",
+        "DSP",
+        "FPGA",
+        "CPLD",
+        "ASIC",
+        "SOC",
+        "OPAMP",
+        "OP-AMP",
+        "OP AMP",
+        "COMPARATOR",
+        "ADC",
+        "DAC",
+        "REGULATOR",
+        "LDO",
+        "DCDC",
+        "DC-DC",
+        "CONVERTER",
+        "DRIVER",
+        "AMPLIFIER",
+        "AMP",
+        "TRANSISTOR",
+        "MOSFET",
+        "FET",
+        "BJT",
+        "IGBT",
+        "JFET",
+        "EEPROM",
+        "FLASH",
+        "SRAM",
+        "DRAM",
+        "MEMORY",
+        "ROM",
+        "EPROM",
+        "DIODE",
+        "LED",
+        "ZENER",
+        "SCHOTTKY",
+        "TVS",
+        "ESD",
+        "RECTIFIER",
+        "BRIDGE",
+        "RESISTOR",
+        "CAPACITOR",
+        "INDUCTOR",
+        "FERRITE",
+        "BEAD",
+        "CHOKE",
+        "RES",
+        "CAP",
+        "IND",
+        "COIL",
+        "CONNECTOR",
+        "HEADER",
+        "SOCKET",
+        "JACK",
+        "PLUG",
+        "TERMINAL",
+        "USB",
+        "HDMI",
+        "RJ45",
+        "RJ11",
+        "FPC",
+        "FFC",
+        "ZIF",
+        "JST",
+        "MOLEX",
+        "CRYSTAL",
+        "OSCILLATOR",
+        "OSC",
+        "XTAL",
+        "RESONATOR",
+        "TCXO",
+        "VCXO",
+        "FUSE",
+        "PTC",
+        "NTC",
+        "THERMISTOR",
+        "VARISTOR",
+        "MOV",
+        "RELAY",
+        "SWITCH",
+        "BUTTON",
+        "ENCODER",
+        "TOGGLE",
+        "TRANSFORMER",
+        "HEATSINK",
+        "HEAT SINK",
+        "FAN",
+        "SENSOR",
+        "TRANSDUCER",
+        "PHOTODIODE",
+        "PHOTOTRANSISTOR",
+        "OPTOCOUPLER",
+        "OPTO",
+        "ISOLATOR",
+        "PHOTOCOUPLER",
+        "ANTENNA",
+        "FILTER",
+        "EMI",
+        "RF",
+        "BATTERY",
+        "HOLDER",
+        "CLIP",
+        "STANDOFF",
+        "SCREW",
+        "NUT",
+        "WASHER",
+        "BUZZER",
+        "PIEZO",
+        "SPEAKER",
+        "MIC",
+        "MICROPHONE",
+        "DISPLAY",
+        "LCD",
+        "OLED",
+        "7SEG",
+        "SEGMENT",
+        "MODULE",
+        "WIFI",
+        "BLUETOOTH",
+        "BLE",
+        "LORA",
+        "GPS",
+        "LTE",
+        "저항",
+        "콘덴서",
+        "캐패시터",
+        "인덕터",
+        "코일",
+        "다이오드",
+        "트랜지스터",
+        "커넥터",
+        "헤더",
+        "소켓",
+        "릴레이",
+        "스위치",
+        "퓨즈",
+        "크리스탈",
+        "오실레이터",
+        "센서",
+        "히트싱크",
+        "방열판",
+        "안테나",
+        "필터",
+        "변압기",
+        "배터리",
+        "홀더",
+        "LED",
+        "IC",
+        "칩",
+        "CHIP"
+    ]
+}

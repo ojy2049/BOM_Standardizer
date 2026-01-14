@@ -20,7 +20,7 @@ from config import (
     APP_DIR, CACHE_FILE, SMD_KEYWORDS, DIP_KEYWORDS, TO_PACKAGE_SMD_VARIANTS,
     SMD_CRYSTAL_PACKAGES, THT_CRYSTAL_PACKAGES, SMD_METRIC_SIZES,
     ELECTROLYTIC_KEYWORDS, SMD_ELECTROLYTIC_KEYWORDS, UNCERTAIN_PART_KEYWORDS, REFDES_PREFIXES,
-    load_config, save_config, get_env_or_config
+    load_config, save_config, get_env_or_config, load_components_db, get_mounting_type_from_package
 )
 
 # 별칭 사전 파일 경로
@@ -905,6 +905,13 @@ class MountingClassifier:
     REFDES_UNCERTAIN_PREFIXES = ['J', 'P', 'CN', 'CON', 'S', 'SW', 'K']
     REFDES_DIP_PREFIXES = ['H', 'TP', 'M']  # Hole, Test Point, Mechanical
     
+    _components_db = None
+
+    @staticmethod
+    def _ensure_db_loaded():
+        if MountingClassifier._components_db is None:
+            MountingClassifier._components_db = load_components_db()
+
     @staticmethod
     def _extract_refdes_prefix(refdes: str) -> str:
         """RefDes에서 접두어 추출 (예: R1 -> R, LED3 -> LED, CN5 -> CN)"""
@@ -947,10 +954,82 @@ class MountingClassifier:
             (분류결과, 판단근거) 튜플
             분류결과: 'SMD' / 'DIP' / 'SMD(추정)' / '확인필요' / '미확정'
         """
+        MountingClassifier._ensure_db_loaded()
+        
+        # 디버깅 로그
+        # 디버깅 로그
+        if any(kw in spec.upper() for kw in ["LM2576", "LM78", "7805"]) or any(kw in mpn.upper() for kw in ["LM2576", "LM78", "7805"]):
+            print(f"[DEBUG] Classify Target: Spec='{spec}', MPN='{mpn}', Pkg='{package}', DB_Loaded={bool(MountingClassifier._components_db)}")
+
         # 모든 텍스트 결합 및 대문자 변환
         all_text = " ".join([spec or "", package or "", mounting or "", mpn or "", category or ""])
         text = all_text.upper()
         text = re.sub(r'[^A-Z0-9\\-\\s가-힣]', ' ', text)
+        
+        # === [Priority 0] DB MPN 패턴 매칭 (최우선) ===
+        # MPN 또는 스펙에서 패턴 검색
+        search_text = f"{mpn} {spec}".upper()
+        
+        if search_text.strip() and MountingClassifier._components_db:
+            all_patterns = []  # (pattern, mounting, packages, original_pattern)
+            components = MountingClassifier._components_db.get('components', {})
+            
+            for cat, items in components.items():
+                # print(f"[DEBUG] Cat: {cat}")
+                for item_type, sub_items in items.items():
+                    # 2단 구조 처리: sub_items가 바로 부품 정보인 경우 (예: IC -> LinearRegulator -> {...})
+                    if isinstance(sub_items, dict) and ('mounting' in sub_items or 'packages' in sub_items):
+                        mpn_patterns = sub_items.get('mpn_patterns', [])
+                        # if "LM7805" in mpn_patterns:
+                        #     print(f"[DEBUG] Found LM7805 in {cat}/{item_type}")
+                        mnt = sub_items.get('mounting', '확인필요')
+                        pkgs = sub_items.get('packages', [])
+                        for pattern in mpn_patterns:
+                            all_patterns.append((pattern.upper(), mnt, pkgs, pattern))
+                        continue
+
+                    # 3단 구조 처리: sub_items가 하위 부품 딕셔너리인 경우 (예: 저항 -> 칩저항 -> {...})
+                    if isinstance(sub_items, dict):
+                        for part_name, part_info in sub_items.items():
+                            if isinstance(part_info, dict):
+                                mpn_patterns = part_info.get('mpn_patterns', [])
+                                mnt = part_info.get('mounting', '확인필요')
+                                pkgs = part_info.get('packages', [])
+                                
+                                for pattern in mpn_patterns:
+                                    all_patterns.append((pattern.upper(), mnt, pkgs, pattern))
+            
+            # 디버그: all_patterns 내용 확인 (LM7805 포함 여부)
+            if "LM7805" in search_text:
+                lm78_patterns = [p for p in all_patterns if "LM78" in p[0]]
+                print(f"[DEBUG] LM78 Patterns Loaded: {len(lm78_patterns)} count")
+                # print(f"[DEBUG] LM78 Patterns: {lm78_patterns[:5]}")
+            
+            # 긴 패턴 먼저 매칭
+            all_patterns.sort(key=lambda x: len(x[0]), reverse=True)
+            
+            for pattern_upper, mnt, pkgs, original_pattern in all_patterns:
+                if pattern_upper in search_text:
+                    if "LM78" in pattern_upper:
+                         print(f"[DEBUG] Loop Check: Pattern={original_pattern}, mnt={mnt}, pkgs={pkgs}") # 디버그
+                         print(f"[DEBUG] Search Text: {text}")
+
+                    reason = f"DB Pattern({original_pattern})"
+                    if mnt == 'SMD':
+                        return "SMD", reason
+                    elif mnt == 'DIP':
+                        return "DIP", reason
+                    
+                    for pkg_name in pkgs:
+                        # 유연한 비교를 위해 정규화 (공백, 하이픈 제거)
+                        text_norm = text.replace(' ', '').replace('-', '')
+                        pkg_norm = pkg_name.upper().replace(' ', '').replace('-', '')
+                        
+                        if pkg_norm in text_norm:
+                            print(f"[DEBUG] Pkg Match Success: {pkg_name} -> {pkg_norm}")
+                            pkg_mnt = get_mounting_type_from_package(pkg_name)
+                            if pkg_mnt != '확인필요':
+                                return pkg_mnt, f"{reason} + Package({pkg_name})"
         
         # === [로직 1] 절대적 키워드 우선 검색 (가장 강력함) ===
         
@@ -1143,7 +1222,7 @@ class PartResolver:
         )
         
         self.api_delay = config.get('api_call_delay', 0.5)
-        self.use_cache = config.get('use_cache', True)
+        self.use_cache = False # config.get('use_cache', True)
         self.cache_ttl = config.get('cache_ttl_days', 30)
         self.use_api_fallback = config.get('use_api_fallback', False)  # API 폴백 비활성화 기본값
     
@@ -1172,13 +1251,14 @@ class PartResolver:
             cached = self.cache.get(cache_key, self.cache_ttl)
             if cached:
                 cached.source = "cache"
-                # 캐시에서도 mounting_type 재분류 (안전)
-                if not cached.mounting_type or cached.mounting_type == "미확정":
-                    mounting_type, classification_reason = self.classifier.classify(
-                        spec, cached.package or package, cached.mounting, mpn, category, refdes
-                    )
-                    cached.mounting_type = mounting_type
-                    cached.classification_reason = classification_reason
+                # 캐시에서도 mounting_type 항상 재분류 (DB 로직 등 최신 로직 반영을 위해)
+                # 기존: if not cached.mounting_type or cached.mounting_type == "미확정":
+                mounting_type, classification_reason = self.classifier.classify(
+                    spec, cached.package or package, cached.mounting, mpn, category, refdes
+                )
+                cached.mounting_type = mounting_type
+                cached.classification_reason = classification_reason
+                
                 return cached
         
         info = PartInfo()

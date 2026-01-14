@@ -13,6 +13,7 @@ from typing import Dict, List, Any
 APP_DIR = Path(__file__).parent
 CONFIG_FILE = APP_DIR / "user_config.json"
 CACHE_FILE = APP_DIR / "resolver_cache.json"
+COMPONENTS_DB_FILE = APP_DIR / "components_db.json"
 
 # ============== 기본 설정 ==============
 DEFAULT_CONFIG = {
@@ -367,3 +368,49 @@ def get_env_or_config(key: str, config: Dict[str, Any] = None) -> str:
         config = load_config()
     
     return config.get(key, '')
+
+
+def load_components_db() -> Dict[str, Any]:
+    """전자부품 데이터베이스 로드"""
+    if COMPONENTS_DB_FILE.exists():
+        try:
+            with open(COMPONENTS_DB_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"컴포넌트 DB 로드 실패: {e}")
+    return {}
+
+
+def get_mounting_type_from_package(package: str) -> str:
+    """패키지명으로 장착방식(SMD/DIP) 판별"""
+    print(f"[DEBUG] get_mounting_type: package='{package}'")
+    db = load_components_db()
+    package_map = db.get("package_mounting_map", {})
+    if not package_map:
+        print("[DEBUG] package_mounting_map NOT FOUND in DB")
+    
+    package_upper = package.upper().strip()
+    
+    dip_list = package_map.get("DIP", [])
+    if not dip_list:
+        print("[DEBUG] DIP list is EMPTY or Missing")
+    else:
+        # print(f"[DEBUG] DIP list size: {len(dip_list)}")
+        has_to220 = any("TO-220" in p.upper() for p in dip_list)
+        print(f"[DEBUG] Has TO-220 in DIP? {has_to220}")
+
+    # SMD 패키지 확인
+    for smd_pkg in package_map.get("SMD", []):
+        if smd_pkg.upper() in package_upper or package_upper in smd_pkg.upper():
+            print(f"[DEBUG] Matched SMD pkg: {smd_pkg}")
+            return "SMD"
+    
+    # DIP 패키지 확인
+    for dip_pkg in dip_list:
+        if dip_pkg.upper() in package_upper or package_upper in dip_pkg.upper():
+            print(f"[DEBUG] Matched DIP pkg: {dip_pkg}")
+            return "DIP"
+    
+    print("[DEBUG] get_mounting_type: Result='확인필요'")
+    return "확인필요"
+

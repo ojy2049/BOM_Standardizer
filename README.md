@@ -148,6 +148,7 @@ BOM_Standardizer/
 │
 ├── user_config.json    # 사용자 설정 (자동 생성)
 ├── part_aliases.json   # 부품 별칭 사전
+├── components_db.json  # 전자부품 DB (MPN 패턴, 패키지 매핑)
 ├── resolver_cache.json # API 조회 캐시 (자동 생성)
 │
 ├── requirements.txt    # 의존성 목록
@@ -211,6 +212,14 @@ export MOUSER_API_KEY="your_api_key"
 
 ## 📝 버전 히스토리
 
+### v2.1.0 (2026-01-15)
+- **전자부품 데이터베이스 도입**: `components_db.json` 파일 추가
+  - MPN 패턴 기반 정밀 분류 (LM7805, LM2576T 등)
+  - 패키지명 기반 SMD/DIP 판별 정확도 향상 (TO-220, TO-263 등)
+- **분류 로직 개선**: 하이픈/공백 무시 매칭 (예: "TO 220" = "TO-220")
+- **캐시 기능 비활성화**: 실시간 분류 결과 반영을 위해 캐시 OFF (필요시 설정에서 재활성화)
+- **Diode 분류 강화**: 일반/스위칭/쇼트키/제너 다이오드 패턴 추가
+
 ### v2.0.0 (2026-01-14)
 - 웹 검색 기능 추가 (DuckDuckGo 기반, API 키 불필요)
 - 헤더 없는 BOM 파일 자동 처리
@@ -224,3 +233,4 @@ export MOUSER_API_KEY="your_api_key"
 - Digi-Key/Mouser API 연동
 - SMD/DIP 휴리스틱 분류
 - 표준 BOM 엑셀 출력
+

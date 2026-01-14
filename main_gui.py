@@ -698,8 +698,10 @@ class ProcessWorker:
                 category_val = str(row.get('품목', ''))
                 refdes_val = str(row.get('위치', ''))  # RefDes 추가
                 
-                # 디버그 출력 (처음 3개만)
-                if idx < 3:
+                # 디버그 출력 (처음 3개 또는 LM2576/LM78 포함 시)
+                keywords = ["LM2576", "LM78", "7805"]
+                is_target_row = (idx < 3) or any(k in spec_val.upper() for k in keywords) or any(k in mpn_val.upper() for k in keywords)
+                if is_target_row:
                     print(f"[DEBUG] Row {idx}: mpn='{mpn_val}', spec='{spec_val}', category='{category_val}', refdes='{refdes_val}'")
                 
                 info = resolver.resolve(
@@ -712,8 +714,8 @@ class ProcessWorker:
                     refdes=refdes_val,  # RefDes 파라미터 추가
                 )
                 
-                # 디버그 출력 (처음 3개만)
-                if idx < 3:
+                # 디버그 출력 (처음 3개만 -> 조건 일치 시)
+                if is_target_row:
                     print(f"[DEBUG] Result: source={info.source}, official_name='{info.official_name}', mounting_type='{info.mounting_type}', reason='{info.classification_reason}'")
                 
                 results.append({

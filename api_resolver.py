@@ -957,10 +957,7 @@ class MountingClassifier:
         MountingClassifier._ensure_db_loaded()
         
         # 디버깅 로그
-        # 디버깅 로그
-        if any(kw in spec.upper() for kw in ["LM2576", "LM78", "7805"]) or any(kw in mpn.upper() for kw in ["LM2576", "LM78", "7805"]):
-            print(f"[DEBUG] Classify Target: Spec='{spec}', MPN='{mpn}', Pkg='{package}', DB_Loaded={bool(MountingClassifier._components_db)}")
-
+        
         # 모든 텍스트 결합 및 대문자 변환
         all_text = " ".join([spec or "", package or "", mounting or "", mpn or "", category or ""])
         text = all_text.upper()
@@ -975,13 +972,10 @@ class MountingClassifier:
             components = MountingClassifier._components_db.get('components', {})
             
             for cat, items in components.items():
-                # print(f"[DEBUG] Cat: {cat}")
                 for item_type, sub_items in items.items():
                     # 2단 구조 처리: sub_items가 바로 부품 정보인 경우 (예: IC -> LinearRegulator -> {...})
                     if isinstance(sub_items, dict) and ('mounting' in sub_items or 'packages' in sub_items):
                         mpn_patterns = sub_items.get('mpn_patterns', [])
-                        # if "LM7805" in mpn_patterns:
-                        #     print(f"[DEBUG] Found LM7805 in {cat}/{item_type}")
                         mnt = sub_items.get('mounting', '확인필요')
                         pkgs = sub_items.get('packages', [])
                         for pattern in mpn_patterns:
@@ -999,34 +993,24 @@ class MountingClassifier:
                                 for pattern in mpn_patterns:
                                     all_patterns.append((pattern.upper(), mnt, pkgs, pattern))
             
-            # 디버그: all_patterns 내용 확인 (LM7805 포함 여부)
-            if "LM7805" in search_text:
-                lm78_patterns = [p for p in all_patterns if "LM78" in p[0]]
-                print(f"[DEBUG] LM78 Patterns Loaded: {len(lm78_patterns)} count")
-                # print(f"[DEBUG] LM78 Patterns: {lm78_patterns[:5]}")
-            
             # 긴 패턴 먼저 매칭
             all_patterns.sort(key=lambda x: len(x[0]), reverse=True)
             
             for pattern_upper, mnt, pkgs, original_pattern in all_patterns:
                 if pattern_upper in search_text:
-                    if "LM78" in pattern_upper:
-                         print(f"[DEBUG] Loop Check: Pattern={original_pattern}, mnt={mnt}, pkgs={pkgs}") # 디버그
-                         print(f"[DEBUG] Search Text: {text}")
-
                     reason = f"DB Pattern({original_pattern})"
                     if mnt == 'SMD':
                         return "SMD", reason
                     elif mnt == 'DIP':
                         return "DIP", reason
                     
+                    # SMD/DIP 혼용인 경우 패키지로 추가 판별
                     for pkg_name in pkgs:
                         # 유연한 비교를 위해 정규화 (공백, 하이픈 제거)
                         text_norm = text.replace(' ', '').replace('-', '')
                         pkg_norm = pkg_name.upper().replace(' ', '').replace('-', '')
                         
                         if pkg_norm in text_norm:
-                            print(f"[DEBUG] Pkg Match Success: {pkg_name} -> {pkg_norm}")
                             pkg_mnt = get_mounting_type_from_package(pkg_name)
                             if pkg_mnt != '확인필요':
                                 return pkg_mnt, f"{reason} + Package({pkg_name})"

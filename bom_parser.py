@@ -637,16 +637,28 @@ class BOMParser:
         search_text = f"{mpn} {스펙}".upper()
         
         if search_text.strip() and self.components_db:
-            all_patterns = []  # (pattern, mounting, packages)
+            all_patterns = []  # (pattern, mounting, packages, original_pattern)
             components = self.components_db.get('components', {})
             for category, items in components.items():
                 for item_type, sub_items in items.items():
-                    for part_name, part_info in sub_items.items():
-                        mpn_patterns = part_info.get('mpn_patterns', [])
-                        mounting = part_info.get('mounting', '확인필요')
-                        packages = part_info.get('packages', [])
+                    # 2단 구조 처리: sub_items가 바로 부품 정보인 경우 (예: IC -> LinearRegulator -> {...})
+                    if isinstance(sub_items, dict) and ('mounting' in sub_items or 'packages' in sub_items):
+                        mpn_patterns = sub_items.get('mpn_patterns', [])
+                        mounting = sub_items.get('mounting', '확인필요')
+                        packages = sub_items.get('packages', [])
                         for pattern in mpn_patterns:
-                            all_patterns.append((pattern.upper(), mounting, packages, pattern))  # 원본 패턴도 저장
+                            all_patterns.append((pattern.upper(), mounting, packages, pattern))
+                        continue
+                    
+                    # 3단 구조 처리: sub_items가 하위 부품 딕셔너리인 경우 (예: 저항 -> 칩저항 -> {...})
+                    if isinstance(sub_items, dict):
+                        for part_name, part_info in sub_items.items():
+                            if isinstance(part_info, dict):
+                                mpn_patterns = part_info.get('mpn_patterns', [])
+                                mounting = part_info.get('mounting', '확인필요')
+                                packages = part_info.get('packages', [])
+                                for pattern in mpn_patterns:
+                                    all_patterns.append((pattern.upper(), mounting, packages, pattern))
             
             # 패턴 길이 역순 정렬 (긴 패턴 = 더 구체적인 패턴 먼저)
             all_patterns.sort(key=lambda x: len(x[0]), reverse=True)
@@ -658,9 +670,11 @@ class BOMParser:
                         return ('SMD', matched_mpn)
                     elif mounting == 'DIP':
                         return ('DIP', matched_mpn)
-                    # SMD/DIP 혼용인 경우 패키지로 추가 판별
+                    # SMD/DIP 혼용인 경우 패키지로 추가 판별 (정규화 적용)
+                    all_text_norm = all_text.replace(' ', '').replace('-', '')
                     for pkg in packages:
-                        if pkg.upper() in all_text:
+                        pkg_norm = pkg.upper().replace(' ', '').replace('-', '')
+                        if pkg_norm in all_text_norm:
                             return (get_mounting_type_from_package(pkg), matched_mpn)
                     break
         

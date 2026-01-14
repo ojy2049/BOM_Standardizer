@@ -7,9 +7,10 @@ tkinter 기반 GUI (Python 표준 라이브러리, 크로스 플랫폼)
 
 import sys
 import os
+import json
 import threading
 from pathlib import Path
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, List
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
@@ -18,7 +19,7 @@ import pandas as pd
 
 from config import load_config, save_config, COLUMN_MAP_CANDIDATES, STANDARD_OUTPUT_COLUMNS
 from bom_parser import BOMParser
-from api_resolver import PartResolver, PartInfo
+from api_resolver import PartResolver, PartInfo, AliasManager, MPNNormalizer
 from excel_writer import ExcelWriter
 
 
@@ -57,8 +58,7 @@ class ColumnMappingFrame(ttk.LabelFrame):
     """컬럼 매핑 프레임"""
     
     STANDARD_KEYS = [
-        ('no', '번호(NO)'),
-        ('규격', '규격/부품종류'),
+        ('품목', '품목/부품종류'),
         ('스펙', '스펙/설명'),
         ('수량', '수량'),
         ('위치', '위치/RefDes'),
@@ -227,6 +227,341 @@ class SettingsFrame(ttk.Frame):
         }
 
 
+class AliasManagerFrame(ttk.Frame):
+    """별칭 관리 프레임"""
+    
+    def __init__(self, parent):
+        super().__init__(parent, padding=10)
+        self.alias_manager = AliasManager()
+        self._create_widgets()
+        self._refresh_list()
+    
+    def _create_widgets(self):
+        # 상단: 검색 및 통계
+        top_frame = ttk.Frame(self)
+        top_frame.pack(fill='x', pady=(0, 10))
+        
+        # 검색
+        search_frame = ttk.LabelFrame(top_frame, text="검색", padding=5)
+        search_frame.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        
+        self.search_var = tk.StringVar()
+        self.search_var.trace('w', lambda *args: self._on_search())
+        
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=40)
+        search_entry.pack(side='left', fill='x', expand=True, padx=(0, 5))
+        
+        ttk.Button(search_frame, text="초기화", command=self._clear_search, width=8).pack(side='left')
+        
+        # 통계
+        stats_frame = ttk.LabelFrame(top_frame, text="통계", padding=5)
+        stats_frame.pack(side='right')
+        
+        self.stats_var = tk.StringVar(value="항목: 0 | 변형: 0")
+        ttk.Label(stats_frame, textvariable=self.stats_var).pack()
+        
+        # 중앙: 별칭 목록
+        list_frame = ttk.LabelFrame(self, text="별칭 목록", padding=5)
+        list_frame.pack(fill='both', expand=True, pady=(0, 10))
+        
+        # 트리뷰
+        columns = ('official_name', 'variants', 'category', 'package')
+        self.tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=12)
+        
+        self.tree.heading('official_name', text='공식 부품명')
+        self.tree.heading('variants', text='변형 (별칭)')
+        self.tree.heading('category', text='카테고리')
+        self.tree.heading('package', text='패키지')
+        
+        self.tree.column('official_name', width=200, minwidth=100)
+        self.tree.column('variants', width=250, minwidth=100)
+        self.tree.column('category', width=100, minwidth=60)
+        self.tree.column('package', width=80, minwidth=50)
+        
+        # 스크롤바
+        vsb = ttk.Scrollbar(list_frame, orient="vertical", command=self.tree.yview)
+        hsb = ttk.Scrollbar(list_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        self.tree.grid(row=0, column=0, sticky='nsew')
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+        
+        list_frame.grid_rowconfigure(0, weight=1)
+        list_frame.grid_columnconfigure(0, weight=1)
+        
+        # 더블클릭으로 편집
+        self.tree.bind('<Double-1>', self._on_double_click)
+        
+        # 하단: 버튼
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(fill='x')
+        
+        # 왼쪽 버튼 (추가/편집/삭제)
+        left_btns = ttk.Frame(btn_frame)
+        left_btns.pack(side='left')
+        
+        ttk.Button(left_btns, text="추가", command=self._add_alias, width=10).pack(side='left', padx=2)
+        ttk.Button(left_btns, text="편집", command=self._edit_alias, width=10).pack(side='left', padx=2)
+        ttk.Button(left_btns, text="삭제", command=self._delete_alias, width=10).pack(side='left', padx=2)
+        
+        # 오른쪽 버튼 (가져오기/내보내기)
+        right_btns = ttk.Frame(btn_frame)
+        right_btns.pack(side='right')
+        
+        ttk.Button(right_btns, text="새로고침", command=self._refresh_list, width=10).pack(side='left', padx=2)
+        ttk.Button(right_btns, text="가져오기", command=self._import_aliases, width=10).pack(side='left', padx=2)
+        ttk.Button(right_btns, text="내보내기", command=self._export_aliases, width=10).pack(side='left', padx=2)
+    
+    def _refresh_list(self, filter_query: str = ""):
+        """목록 새로고침"""
+        # 기존 항목 삭제
+        self.tree.delete(*self.tree.get_children())
+        
+        # 별칭 로드
+        self.alias_manager.load()
+        
+        if filter_query:
+            aliases = self.alias_manager.search_aliases(filter_query, limit=200)
+            items = [(a['canonical'], a) for a in aliases]
+        else:
+            items = list(self.alias_manager.get_all_aliases().items())
+        
+        # 트리에 추가
+        for canonical, info in items:
+            if isinstance(info, dict):
+                official_name = info.get('official_name', canonical)
+                variants = info.get('variants', [])
+                category = info.get('category', '')
+                package = info.get('package', '')
+            else:
+                official_name = canonical
+                variants = []
+                category = ''
+                package = ''
+            
+            variants_str = ', '.join(variants[:3])
+            if len(variants) > 3:
+                variants_str += f' (+{len(variants) - 3}개)'
+            
+            self.tree.insert('', 'end', iid=canonical, values=(
+                official_name,
+                variants_str,
+                category,
+                package
+            ))
+        
+        # 통계 업데이트
+        stats = self.alias_manager.get_stats()
+        self.stats_var.set(f"항목: {stats['total_entries']} | 변형: {stats['total_variants']}")
+    
+    def _on_search(self):
+        """검색 이벤트"""
+        query = self.search_var.get().strip()
+        self._refresh_list(query)
+    
+    def _clear_search(self):
+        """검색 초기화"""
+        self.search_var.set("")
+        self._refresh_list()
+    
+    def _on_double_click(self, event):
+        """더블클릭으로 편집"""
+        self._edit_alias()
+    
+    def _add_alias(self):
+        """별칭 추가 다이얼로그"""
+        dialog = AliasEditDialog(self, "별칭 추가", self.alias_manager)
+        self.wait_window(dialog)
+        self._refresh_list()
+    
+    def _edit_alias(self):
+        """별칭 편집 다이얼로그"""
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showinfo("알림", "편집할 항목을 선택하세요.")
+            return
+        
+        canonical = selected[0]
+        aliases = self.alias_manager.get_all_aliases()
+        info = aliases.get(canonical, {})
+        
+        dialog = AliasEditDialog(self, "별칭 편집", self.alias_manager, canonical, info)
+        self.wait_window(dialog)
+        self._refresh_list()
+    
+    def _delete_alias(self):
+        """별칭 삭제"""
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showinfo("알림", "삭제할 항목을 선택하세요.")
+            return
+        
+        canonical = selected[0]
+        
+        if messagebox.askyesno("확인", f"'{canonical}' 항목을 삭제하시겠습니까?"):
+            if self.alias_manager.remove_alias(canonical):
+                self._refresh_list()
+                messagebox.showinfo("완료", "항목이 삭제되었습니다.")
+            else:
+                messagebox.showwarning("오류", "삭제에 실패했습니다.")
+    
+    def _import_aliases(self):
+        """별칭 가져오기"""
+        file_path = filedialog.askopenfilename(
+            title="별칭 파일 가져오기",
+            filetypes=[
+                ("JSON Files", "*.json"),
+                ("All Files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                if self.alias_manager.import_data(data, merge=True):
+                    self._refresh_list()
+                    messagebox.showinfo("완료", "별칭을 가져왔습니다.")
+                else:
+                    messagebox.showwarning("오류", "가져오기에 실패했습니다.")
+            except Exception as e:
+                messagebox.showerror("오류", f"파일 읽기 실패: {e}")
+    
+    def _export_aliases(self):
+        """별칭 내보내기"""
+        file_path = filedialog.asksaveasfilename(
+            title="별칭 파일 내보내기",
+            defaultextension=".json",
+            filetypes=[
+                ("JSON Files", "*.json"),
+                ("All Files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            try:
+                data = self.alias_manager.export_data()
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                messagebox.showinfo("완료", f"별칭을 내보냈습니다:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("오류", f"파일 저장 실패: {e}")
+
+
+class AliasEditDialog(tk.Toplevel):
+    """별칭 편집 다이얼로그"""
+    
+    def __init__(self, parent, title: str, alias_manager: AliasManager,
+                 canonical: str = "", info: dict = None):
+        super().__init__(parent)
+        
+        self.alias_manager = alias_manager
+        self.canonical = canonical
+        self.info = info or {}
+        self.is_edit = bool(canonical)
+        
+        self.title(title)
+        self.geometry("500x400")
+        self.resizable(True, True)
+        self.transient(parent)
+        self.grab_set()
+        
+        self._create_widgets()
+        self._load_data()
+    
+    def _create_widgets(self):
+        main_frame = ttk.Frame(self, padding=15)
+        main_frame.pack(fill='both', expand=True)
+        
+        # 공식 부품명
+        ttk.Label(main_frame, text="공식 부품명 (MPN):").grid(row=0, column=0, sticky='e', pady=5)
+        self.official_name_var = tk.StringVar()
+        self.official_name_entry = ttk.Entry(main_frame, textvariable=self.official_name_var, width=40)
+        self.official_name_entry.grid(row=0, column=1, sticky='w', pady=5)
+        
+        # 카테고리
+        ttk.Label(main_frame, text="카테고리:").grid(row=1, column=0, sticky='e', pady=5)
+        self.category_var = tk.StringVar()
+        self.category_entry = ttk.Entry(main_frame, textvariable=self.category_var, width=40)
+        self.category_entry.grid(row=1, column=1, sticky='w', pady=5)
+        
+        # 패키지
+        ttk.Label(main_frame, text="패키지:").grid(row=2, column=0, sticky='e', pady=5)
+        self.package_var = tk.StringVar()
+        self.package_entry = ttk.Entry(main_frame, textvariable=self.package_var, width=40)
+        self.package_entry.grid(row=2, column=1, sticky='w', pady=5)
+        
+        # 변형 (별칭) 목록
+        ttk.Label(main_frame, text="변형 (별칭):").grid(row=3, column=0, sticky='ne', pady=5)
+        
+        variants_frame = ttk.Frame(main_frame)
+        variants_frame.grid(row=3, column=1, sticky='w', pady=5)
+        
+        self.variants_text = scrolledtext.ScrolledText(variants_frame, width=35, height=8)
+        self.variants_text.pack(side='left')
+        
+        ttk.Label(variants_frame, text="(한 줄에 하나씩)", foreground='gray').pack(side='left', padx=5)
+        
+        # 버튼
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.grid(row=4, column=0, columnspan=2, pady=20)
+        
+        ttk.Button(btn_frame, text="저장", command=self._save, width=12).pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="취소", command=self.destroy, width=12).pack(side='left', padx=5)
+    
+    def _load_data(self):
+        """기존 데이터 로드"""
+        if self.is_edit:
+            self.official_name_var.set(self.info.get('official_name', ''))
+            self.category_var.set(self.info.get('category', ''))
+            self.package_var.set(self.info.get('package', ''))
+            
+            variants = self.info.get('variants', [])
+            self.variants_text.insert('1.0', '\n'.join(variants))
+    
+    def _save(self):
+        """저장"""
+        official_name = self.official_name_var.get().strip()
+        
+        if not official_name:
+            messagebox.showwarning("오류", "공식 부품명을 입력하세요.")
+            return
+        
+        category = self.category_var.get().strip()
+        package = self.package_var.get().strip()
+        
+        # 변형 목록 파싱
+        variants_text = self.variants_text.get('1.0', 'end').strip()
+        variants = [v.strip() for v in variants_text.split('\n') if v.strip()]
+        
+        # 저장
+        if self.is_edit:
+            # 기존 항목 삭제 후 다시 추가
+            self.alias_manager.remove_alias(self.canonical)
+        
+        # 새 항목 추가
+        self.alias_manager.add_alias(
+            canonical_mpn=official_name,
+            variant="",
+            category=category,
+            package=package,
+            auto_generated=False
+        )
+        
+        # 변형 추가
+        for variant in variants:
+            self.alias_manager.add_alias(
+                canonical_mpn=official_name,
+                variant=variant,
+                category=category,
+                package=package
+            )
+        
+        self.destroy()
+
+
 class DataTableFrame(ttk.Frame):
     """데이터 테이블 프레임"""
     
@@ -281,15 +616,21 @@ class DataTableFrame(ttk.Frame):
                 mounting = row.get('장착방식', '')
                 if mounting == 'SMD':
                     self.tree.item(item_id, tags=('smd',))
+                elif mounting == 'SMD(추정)':
+                    self.tree.item(item_id, tags=('smd_estimated',))
                 elif mounting == 'DIP':
                     self.tree.item(item_id, tags=('dip',))
+                elif mounting == '확인필요':
+                    self.tree.item(item_id, tags=('uncertain',))
                 elif mounting == '미확정':
                     self.tree.item(item_id, tags=('unknown',))
         
         # 태그 색상 설정
-        self.tree.tag_configure('smd', background='#E2EFDA')
-        self.tree.tag_configure('dip', background='#FCE4D6')
-        self.tree.tag_configure('unknown', background='#FFF2CC')
+        self.tree.tag_configure('smd', background='#E2EFDA')  # 녹색 (SMD 확정)
+        self.tree.tag_configure('smd_estimated', background='#C6EFCE')  # 연녹색 (SMD 추정)
+        self.tree.tag_configure('dip', background='#FCE4D6')  # 주황색 (DIP)
+        self.tree.tag_configure('uncertain', background='#FFCCCC')  # 빨간색 (확인필요)
+        self.tree.tag_configure('unknown', background='#FFF2CC')  # 노란색 (미확정)
 
 
 class ProcessWorker:
@@ -329,15 +670,17 @@ class ProcessWorker:
                 return
             
             # 공급사 조회 초기화
-            self.progress_callback(10, "공급사 API 초기화...")
+            self.progress_callback(10, "웹 검색 초기화...")
             resolver = PartResolver(self.config)
             
             api_status = resolver.get_api_status()
-            if not any(api_status.values()):
-                self.progress_callback(15, "API 미설정 - 휴리스틱 분류만 수행")
+            if api_status.get('web_search'):
+                self.progress_callback(15, "DuckDuckGo 웹 검색 활성화")
+            elif not any(api_status.values()):
+                self.progress_callback(15, "휴리스틱 분류만 수행")
             else:
                 apis = [k for k, v in api_status.items() if v]
-                self.progress_callback(15, f"API 연결: {', '.join(apis)}")
+                self.progress_callback(15, f"검색 연결: {', '.join(apis)}")
             
             # 각 행 처리
             results = []
@@ -350,21 +693,37 @@ class ProcessWorker:
                 self.progress_callback(progress, f"처리 중: {idx + 1}/{total_rows}")
                 
                 # 부품 정보 조회
+                mpn_val = str(row.get('mpn', ''))
+                spec_val = str(row.get('스펙', ''))
+                category_val = str(row.get('품목', ''))
+                refdes_val = str(row.get('위치', ''))  # RefDes 추가
+                
+                # 디버그 출력 (처음 3개만)
+                if idx < 3:
+                    print(f"[DEBUG] Row {idx}: mpn='{mpn_val}', spec='{spec_val}', category='{category_val}', refdes='{refdes_val}'")
+                
                 info = resolver.resolve(
-                    mpn=str(row.get('mpn', '')),
+                    mpn=mpn_val,
                     digi_pn=str(row.get('digi_pn', '')),
                     mouser_pn=str(row.get('mouser_pn', '')),
-                    spec=str(row.get('스펙', '')),
+                    spec=spec_val,
                     package=str(row.get('package', '')),
+                    category=category_val,
+                    refdes=refdes_val,  # RefDes 파라미터 추가
                 )
+                
+                # 디버그 출력 (처음 3개만)
+                if idx < 3:
+                    print(f"[DEBUG] Result: source={info.source}, official_name='{info.official_name}', mounting_type='{info.mounting_type}', reason='{info.classification_reason}'")
                 
                 results.append({
                     'NO': row['NO'],
-                    '규격': row['규격'],
+                    '품목': row['품목'],
                     '스펙': row['스펙'],
                     '수량': row['수량'],
                     '위치': row['위치'],
                     '장착방식': info.mounting_type,
+                    '판단근거': info.classification_reason,  # 판단근거 필드 추가 (VBA 매크로 기능)
                     '공식부품명': info.official_name,
                     '공급사': info.supplier,
                     '공급사부품번호': info.supplier_pn,
@@ -410,6 +769,22 @@ class MainApplication(tk.Tk):
         self.file_path_var = tk.StringVar(value="파일을 선택하세요")
         ttk.Label(file_frame, textvariable=self.file_path_var, foreground='gray').pack(side='left', fill='x', expand=True)
         
+        # 헤더행 지정 옵션
+        header_row_frame = ttk.Frame(file_frame)
+        header_row_frame.pack(side='right', padx=(0, 10))
+        
+        ttk.Label(header_row_frame, text="헤더 행:").pack(side='left')
+        self.header_row_var = tk.StringVar(value="자동")
+        self.header_row_combo = ttk.Combobox(
+            header_row_frame, 
+            textvariable=self.header_row_var,
+            values=["자동", "없음"] + [str(i) for i in range(1, 21)],
+            width=6,
+            state='readonly'
+        )
+        self.header_row_combo.pack(side='left', padx=5)
+        ToolTip(self.header_row_combo, "헤더가 있는 행 번호\n'없음': 헤더 없이 데이터 패턴으로 추론\n(셀 병합/회사명 등으로 자동 인식이 안 될 때 수동 지정)")
+        
         self.browse_btn = ttk.Button(file_frame, text="파일 찾기...", command=self._browse_file)
         self.browse_btn.pack(side='right')
         
@@ -446,7 +821,11 @@ class MainApplication(tk.Tk):
         self.stats_var = tk.StringVar(value="")
         ttk.Label(result_label_frame, textvariable=self.stats_var, font=('맑은 고딕', 10, 'bold')).pack(pady=5)
         
-        # 탭 3: 설정
+        # 탭 3: 별칭 관리
+        self.alias_frame = AliasManagerFrame(self.notebook)
+        self.notebook.add(self.alias_frame, text="별칭 관리")
+        
+        # 탭 4: 설정
         self.settings_frame = SettingsFrame(self.notebook)
         self.notebook.add(self.settings_frame, text="설정")
         
@@ -495,6 +874,9 @@ class MainApplication(tk.Tk):
         )
         
         if file_path:
+            # 새 파일 로드 시 헤더 행을 자동으로 리셋
+            self.header_row_var.set("자동")
+            
             self._load_file(file_path)
             
             # 마지막 디렉토리 저장
@@ -504,11 +886,34 @@ class MainApplication(tk.Tk):
     def _load_file(self, file_path: str):
         """파일 로드 및 미리보기"""
         self.parser = BOMParser()
-        success, msg = self.parser.load_file(file_path)
+        
+        # 헤더행 설정 확인
+        header_row_str = self.header_row_var.get()
+        if header_row_str == "자동":
+            header_row = None  # 자동 탐지
+        elif header_row_str == "없음":
+            header_row = -1  # 헤더 없음 명시
+        else:
+            header_row = int(header_row_str) - 1  # 1-based를 0-based로 변환
+        
+        success, msg = self.parser.load_file(file_path, header_row=header_row)
         
         if not success:
             messagebox.showwarning("오류", msg)
             return
+        
+        # 헤더 없음 모드 감지 시 안내
+        if self.parser.headerless_mode:
+            self.header_row_var.set("없음")
+            messagebox.showinfo(
+                "헤더 없음 감지",
+                "헤더 행이 감지되지 않았습니다.\n"
+                "데이터 패턴을 분석하여 컬럼을 자동으로 추론합니다.\n\n"
+                "추론 결과가 맞지 않으면 아래 컬럼 매핑에서 직접 수정해주세요."
+            )
+        # 탐지된 헤더행 표시
+        elif header_row is None and self.parser.detected_header_row > 0:
+            self.header_row_var.set(str(self.parser.detected_header_row + 1))
         
         self.file_path_var.set(file_path)
         self.progress_label_var.set(msg)
@@ -586,13 +991,16 @@ class MainApplication(tk.Tk):
             self.result_table.display_dataframe(result_df)
             self.save_btn.config(state='normal')
             
-            # 통계 표시
+            # 통계 표시 (VBA 매크로처럼 세분화)
             stats = self._get_statistics(result_df)
+            uncertain_warning = " ⚠️" if stats['uncertain'] > 0 else ""
             self.stats_var.set(
                 f"총 {stats['total']}개  |  "
-                f"SMD: {stats['smd']}개  |  "
-                f"DIP: {stats['dip']}개  |  "
-                f"미확정: {stats['unknown']}개"
+                f"SMD: {stats['smd']}  |  "
+                f"SMD(추정): {stats['smd_estimated']}  |  "
+                f"DIP: {stats['dip']}  |  "
+                f"확인필요: {stats['uncertain']}{uncertain_warning}  |  "
+                f"미확정: {stats['unknown']}"
             )
             
             # 결과 탭으로 이동
@@ -605,11 +1013,13 @@ class MainApplication(tk.Tk):
         self.progress_label_var.set(message)
     
     def _get_statistics(self, df: pd.DataFrame) -> dict:
-        """통계 계산"""
-        stats = {'total': len(df), 'smd': 0, 'dip': 0, 'unknown': 0}
+        """통계 계산 (VBA 매크로와 유사하게 세분화)"""
+        stats = {'total': len(df), 'smd': 0, 'smd_estimated': 0, 'dip': 0, 'uncertain': 0, 'unknown': 0}
         if '장착방식' in df.columns:
             stats['smd'] = len(df[df['장착방식'] == 'SMD'])
+            stats['smd_estimated'] = len(df[df['장착방식'] == 'SMD(추정)'])
             stats['dip'] = len(df[df['장착방식'] == 'DIP'])
+            stats['uncertain'] = len(df[df['장착방식'] == '확인필요'])
             stats['unknown'] = len(df[df['장착방식'] == '미확정'])
         return stats
     

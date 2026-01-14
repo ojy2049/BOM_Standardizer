@@ -1,0 +1,36 @@
+{
+    "_description": "동일 부품의 다양한 표기를 관리하는 별칭 사전",
+    "_version": "1.0",
+    "_last_updated": "2026-01-11",
+    "aliases": {},
+    "category_mappings": {
+        "RESISTOR-CHIP": "칩저항",
+        "RESISTOR CHIP": "칩저항",
+        "RES-CHIP": "칩저항",
+        "RES CHIP": "칩저항",
+        "CHIP RESISTOR": "칩저항",
+        "SMD RESISTOR": "칩저항",
+        "CAPACITOR-CHIP": "칩콘덴서",
+        "CAPACITOR CHIP": "칩콘덴서",
+        "CAP-CHIP": "칩콘덴서",
+        "CAP CHIP": "칩콘덴서",
+        "CHIP CAPACITOR": "칩콘덴서",
+        "MLCC": "칩콘덴서",
+        "SMD CAPACITOR": "칩콘덴서",
+        "INDUCTOR-CHIP": "칩인덕터",
+        "CHIP INDUCTOR": "칩인덕터",
+        "SMD INDUCTOR": "칩인덕터",
+        "LED-CHIP": "칩LED",
+        "CHIP LED": "칩LED",
+        "SMD LED": "칩LED",
+        "DIODE-CHIP": "칩다이오드",
+        "CHIP DIODE": "칩다이오드",
+        "SMD DIODE": "칩다이오드"
+    },
+    "ignore_patterns": [
+        "^\\s*$",
+        "^N/A$",
+        "^TBD$",
+        "^-$"
+    ]
+}

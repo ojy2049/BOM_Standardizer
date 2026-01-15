@@ -217,6 +217,24 @@
                         "CHIP INDUCTOR",
                         "SMD INDUCTOR",
                         "IND-CHIP"
+                    ],
+                    "mpn_patterns": [
+                        "MLZ1608",
+                        "MLZ2012",
+                        "MLF1608",
+                        "MLF2012",
+                        "MLG0603",
+                        "MLG1005",
+                        "LQH2M",
+                        "LQH3N",
+                        "LQH44",
+                        "LQM18",
+                        "LQM21",
+                        "LQM31",
+                        "LQG15",
+                        "LQG18",
+                        "LQW15",
+                        "LQW18"
                     ]
                 },
                 "권선인덕터": {
@@ -228,6 +246,41 @@
                     "aliases": [
                         "WIRE WOUND INDUCTOR",
                         "COIL"
+                    ],
+                    "mpn_patterns": [
+                        "RLB-",
+                        "RCH-",
+                        "EC24-"
+                    ]
+                },
+                "토로이드인덕터": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "TOROID",
+                        "RING",
+                        "THT"
+                    ],
+                    "aliases": [
+                        "TOROIDAL INDUCTOR",
+                        "TOROID INDUCTOR",
+                        "TOROIDAL COIL",
+                        "RING INDUCTOR"
+                    ],
+                    "mpn_patterns": [
+                        "IR15-",
+                        "IR22-",
+                        "IR33-",
+                        "TC-",
+                        "TCK-",
+                        "T37-",
+                        "T50-",
+                        "T68-",
+                        "T80-",
+                        "T94-",
+                        "T106-",
+                        "T130-",
+                        "FT-",
+                        "RN-"
                     ]
                 },
                 "파워인덕터": {
@@ -240,6 +293,27 @@
                         "POWER INDUCTOR",
                         "POWER CHOKE",
                         "DC-DC INDUCTOR"
+                    ],
+                    "mpn_patterns": [
+                        "SPM6530",
+                        "SPM5030",
+                        "SPM4030",
+                        "SLF7045",
+                        "SLF10145",
+                        "VLF3012",
+                        "VLF4012",
+                        "VLS4012",
+                        "VLS5045",
+                        "CLF6045",
+                        "SRN4018",
+                        "SRN6045",
+                        "SRR1260",
+                        "SRU1048",
+                        "IHLP2525",
+                        "IHLP3232",
+                        "CDRH127",
+                        "CDRH104",
+                        "CDEP105"
                     ]
                 },
                 "페라이트비드": {
@@ -255,6 +329,18 @@
                         "FB",
                         "EMI FILTER",
                         "BEAD"
+                    ],
+                    "mpn_patterns": [
+                        "BLM15",
+                        "BLM18",
+                        "BLM21",
+                        "BLM31",
+                        "BLA15",
+                        "BLA31",
+                        "MMZ1608",
+                        "MMZ2012",
+                        "MPZ1608",
+                        "MPZ2012"
                     ]
                 },
                 "공통모드초크": {
@@ -268,6 +354,18 @@
                         "CMC",
                         "CM CHOKE",
                         "LINE FILTER"
+                    ],
+                    "mpn_patterns": [
+                        "DLW21",
+                        "DLW31",
+                        "DLW43",
+                        "DLM0QS",
+                        "DLM1D",
+                        "ACM2012",
+                        "ACM3225",
+                        "ACM4532",
+                        "ACT45",
+                        "TCM0403"
                     ]
                 }
             },
@@ -299,51 +397,158 @@
         },
         "반도체": {
             "다이오드": {
-                "정류다이오드": {
-                    "mounting": "SMD/DIP",
+                "정류다이오드-SMD": {
+                    "mounting": "SMD",
                     "packages": [
-                        "DO-41",
-                        "DO-35",
                         "DO-214",
                         "SOD-123",
-                        "SOD-323",
                         "SMA",
                         "SMB",
                         "SMC"
                     ],
                     "aliases": [
+                        "RECTIFIER SMD"
+                    ],
+                    "mpn_patterns": [
+                        "GS1M",
+                        "RS1M",
+                        "SM4007",
+                        "S1A",
+                        "S1B",
+                        "S1D",
+                        "S1G",
+                        "S1M"
+                    ]
+                },
+                "정류다이오드-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-35",
+                        "DO-15",
+                        "AXIAL"
+                    ],
+                    "aliases": [
                         "RECTIFIER",
                         "DIODE",
                         "RECTIFIER DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "1N4001",
+                        "1N4002",
+                        "1N4003",
+                        "1N4004",
+                        "1N4005",
+                        "1N4006",
+                        "1N4007",
+                        "1N5400",
+                        "1N5401",
+                        "1N5408"
                     ]
                 },
-                "제너다이오드": {
-                    "mounting": "SMD/DIP",
+                "제너다이오드-SMD": {
+                    "mounting": "SMD",
                     "packages": [
-                        "DO-35",
                         "SOD-123",
                         "SOD-323",
-                        "SOT-23"
+                        "SOT-23",
+                        "SMA"
+                    ],
+                    "aliases": [
+                        "ZENER SMD"
+                    ],
+                    "mpn_patterns": [
+                        "BZX84",
+                        "BZT52",
+                        "MMSZ",
+                        "SMAZ"
+                    ]
+                },
+                "제너다이오드-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-35",
+                        "DO-41",
+                        "AXIAL"
                     ],
                     "aliases": [
                         "ZENER",
                         "ZENER DIODE",
                         "VOLTAGE REFERENCE"
+                    ],
+                    "mpn_patterns": [
+                        "1N4728",
+                        "1N4729",
+                        "1N4730",
+                        "1N4731",
+                        "1N4732",
+                        "1N4733",
+                        "1N4734",
+                        "1N4735",
+                        "1N4736",
+                        "1N4740",
+                        "1N4742",
+                        "1N4744",
+                        "1N4746",
+                        "1N4748",
+                        "1N4750"
                     ]
                 },
-                "쇼트키다이오드": {
-                    "mounting": "SMD/DIP",
+                "쇼트키다이오드-SMD": {
+                    "mounting": "SMD",
                     "packages": [
-                        "DO-41",
                         "DO-214",
                         "SMA",
                         "SMB",
-                        "SOD-123"
+                        "SOD-123",
+                        "SOT-23"
+                    ],
+                    "aliases": [
+                        "SCHOTTKY SMD"
+                    ],
+                    "mpn_patterns": [
+                        "SS12",
+                        "SS13",
+                        "SS14",
+                        "SS24",
+                        "SS34",
+                        "SS36",
+                        "BAT54",
+                        "BAT54S",
+                        "MBRS130",
+                        "MBRS140",
+                        "B140",
+                        "B240",
+                        "B340"
+                    ]
+                },
+                "쇼트키다이오드-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "DO-41",
+                        "DO-27",
+                        "DO-15",
+                        "DO-201AD",
+                        "AXIAL"
                     ],
                     "aliases": [
                         "SCHOTTKY",
                         "SCHOTTKY DIODE",
                         "BARRIER DIODE"
+                    ],
+                    "mpn_patterns": [
+                        "1N5817",
+                        "1N5818",
+                        "1N5819",
+                        "1N5820",
+                        "1N5821",
+                        "1N5822",
+                        "SB140",
+                        "SB240",
+                        "SB340",
+                        "SR160",
+                        "SR360",
+                        "SR560"
                     ]
                 },
                 "TVS다이오드": {
@@ -409,16 +614,114 @@
                         "PD"
                     ]
                 },
-                "브리지다이오드": {
+                "브리지다이오드-인라인": {
                     "mounting": "DIP",
                     "packages": [
-                        "THT",
-                        "MODULE"
+                        "KBL",
+                        "GBJ",
+                        "GBU",
+                        "GBPC",
+                        "KBPC"
                     ],
                     "aliases": [
                         "BRIDGE RECTIFIER",
                         "DIODE BRIDGE",
-                        "FULL BRIDGE"
+                        "FULL BRIDGE",
+                        "INLINE BRIDGE"
+                    ],
+                    "mpn_patterns": [
+                        "KBL4",
+                        "KBL6",
+                        "KBL8",
+                        "KBL10",
+                        "GBJ6",
+                        "GBJ8",
+                        "GBJ10",
+                        "GBJ15",
+                        "GBJ25",
+                        "GBJ35",
+                        "GBU4",
+                        "GBU6",
+                        "GBU8",
+                        "GBPC15",
+                        "GBPC25",
+                        "GBPC35",
+                        "KBPC10",
+                        "KBPC15",
+                        "KBPC25",
+                        "KBPC35",
+                        "KBPC50"
+                    ]
+                },
+                "브리지다이오드-미니": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "KBP",
+                        "KB",
+                        "W",
+                        "DF",
+                        "RB"
+                    ],
+                    "aliases": [
+                        "MINI BRIDGE",
+                        "BRIDGE RECTIFIER"
+                    ],
+                    "mpn_patterns": [
+                        "KBP2",
+                        "KBP3",
+                        "KBP4",
+                        "KBP6",
+                        "KB2",
+                        "KB4",
+                        "KB6",
+                        "W01",
+                        "W02",
+                        "W04",
+                        "W06",
+                        "W08",
+                        "W10",
+                        "DF01",
+                        "DF02",
+                        "DF04",
+                        "DF06",
+                        "DF10",
+                        "RB15",
+                        "RB16"
+                    ]
+                },
+                "브리지다이오드-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "MBS",
+                        "MB-S",
+                        "HD",
+                        "ABS",
+                        "SOIC-4"
+                    ],
+                    "aliases": [
+                        "SMD BRIDGE",
+                        "SURFACE MOUNT BRIDGE"
+                    ],
+                    "mpn_patterns": [
+                        "MB1S",
+                        "MB2S",
+                        "MB4S",
+                        "MB6S",
+                        "MB8S",
+                        "MB10S",
+                        "MBS1",
+                        "MBS2",
+                        "MBS4",
+                        "HD01",
+                        "HD02",
+                        "HD04",
+                        "ABS2",
+                        "ABS4",
+                        "ABS6",
+                        "ABS10",
+                        "DF005S",
+                        "DF01S",
+                        "DF02S"
                     ]
                 }
             },
@@ -535,212 +838,6 @@
                         "PHOTOTRANSISTOR",
                         "PHOTO TRANSISTOR",
                         "PT"
-                    ]
-                }
-            },
-            "다이오드": {
-                "다이오드-일반-SMD": {
-                    "mounting": "SMD",
-                    "packages": [
-                        "SMA",
-                        "SMB",
-                        "SMC",
-                        "SOD-123",
-                        "MELF",
-                        "DO-214AC"
-                    ],
-                    "aliases": [
-                        "RECTIFIER DIODE",
-                        "GEN PURP DIODE"
-                    ],
-                    "mpn_patterns": [
-                        "GS1M",
-                        "RS1M",
-                        "SM4007",
-                        "S1A",
-                        "S1B",
-                        "S1D",
-                        "S1G",
-                        "S1J",
-                        "S1K",
-                        "S1M"
-                    ]
-                },
-                "다이오드-일반-DIP": {
-                    "mounting": "DIP",
-                    "packages": [
-                        "DO-41",
-                        "DO-15",
-                        "AXIAL",
-                        "DO-204AL"
-                    ],
-                    "aliases": [
-                        "RECTIFIER DIODE"
-                    ],
-                    "mpn_patterns": [
-                        "1N4001",
-                        "1N4002",
-                        "1N4003",
-                        "1N4004",
-                        "1N4005",
-                        "1N4006",
-                        "1N4007",
-                        "1N5400",
-                        "1N5401",
-                        "1N5408",
-                        "1N539"
-                    ]
-                },
-                "다이오드-스위칭-SMD": {
-                    "mounting": "SMD",
-                    "packages": [
-                        "SOD-123",
-                        "SOD-323",
-                        "SOD-523",
-                        "SOT-23",
-                        "MiniMELF",
-                        "LL34"
-                    ],
-                    "aliases": [
-                        "SWITCHING DIODE",
-                        "FAST RECOVERY"
-                    ],
-                    "mpn_patterns": [
-                        "LL4148",
-                        "1N4148W",
-                        "1N4148WS",
-                        "1N4148WT",
-                        "BAV99",
-                        "BAV70",
-                        "MMBD4148",
-                        "BAS16",
-                        "BAS21"
-                    ]
-                },
-                "다이오드-스위칭-DIP": {
-                    "mounting": "DIP",
-                    "packages": [
-                        "DO-35",
-                        "DO-34",
-                        "AXIAL"
-                    ],
-                    "aliases": [
-                        "SWITCHING DIODE"
-                    ],
-                    "mpn_patterns": [
-                        "1N4148",
-                        "1N914",
-                        "1N4448"
-                    ]
-                },
-                "다이오드-쇼트키-SMD": {
-                    "mounting": "SMD",
-                    "packages": [
-                        "SMA",
-                        "SMB",
-                        "SMC",
-                        "SOD-123",
-                        "SOT-23"
-                    ],
-                    "aliases": [
-                        "SCHOTTKY"
-                    ],
-                    "mpn_patterns": [
-                        "SS12",
-                        "SS13",
-                        "SS14",
-                        "SS24",
-                        "SS34",
-                        "MBRS130",
-                        "MBRS140",
-                        "BAT54",
-                        "BAT54S",
-                        "B140",
-                        "B240",
-                        "B340",
-                        "SR160",
-                        "1N5819HW"
-                    ]
-                },
-                "다이오드-쇼트키-DIP": {
-                    "mounting": "DIP",
-                    "packages": [
-                        "DO-41",
-                        "DO-15",
-                        "DO-201AD",
-                        "AXIAL"
-                    ],
-                    "aliases": [
-                        "SCHOTTKY"
-                    ],
-                    "mpn_patterns": [
-                        "1N5817",
-                        "1N5818",
-                        "1N5819",
-                        "1N5820",
-                        "1N5821",
-                        "1N5822",
-                        "SB140",
-                        "SB240",
-                        "SB340",
-                        "SR160",
-                        "SR360",
-                        "SR560"
-                    ]
-                },
-                "다이오드-제너-SMD": {
-                    "mounting": "SMD",
-                    "packages": [
-                        "SOT-23",
-                        "SOD-123",
-                        "SMA"
-                    ],
-                    "aliases": [
-                        "ZENER DIODE"
-                    ],
-                    "mpn_patterns": [
-                        "BZX84",
-                        "BZT52",
-                        "MMSZ",
-                        "SMAZ",
-                        "ZM47"
-                    ]
-                },
-                "다이오드-제너-DIP": {
-                    "mounting": "DIP",
-                    "packages": [
-                        "DO-41",
-                        "DO-35",
-                        "AXIAL"
-                    ],
-                    "aliases": [
-                        "ZENER DIODE"
-                    ],
-                    "mpn_patterns": [
-                        "1N4728",
-                        "1N4729",
-                        "1N4730",
-                        "1N4731",
-                        "1N4732",
-                        "1N4733",
-                        "1N4734",
-                        "1N4735",
-                        "1N4736",
-                        "1N4737",
-                        "1N4738",
-                        "1N4739",
-                        "1N4740",
-                        "1N4741",
-                        "1N4742",
-                        "1N4743",
-                        "1N4744",
-                        "1N4745",
-                        "1N4746",
-                        "1N4747",
-                        "1N4748",
-                        "1N4749",
-                        "1N4750",
-                        "1N52"
                     ]
                 }
             },
@@ -1943,20 +2040,69 @@
         },
         "기구부품": {
             "크리스탈": {
-                "수정진동자": {
-                    "mounting": "SMD/DIP",
+                "수정진동자-SMD": {
+                    "mounting": "SMD",
                     "packages": [
-                        "HC49",
-                        "HC49S",
                         "3215",
                         "2520",
                         "5032",
-                        "7050"
+                        "7050",
+                        "3225",
+                        "2016",
+                        "1612"
+                    ],
+                    "aliases": [
+                        "SMD CRYSTAL",
+                        "CHIP CRYSTAL",
+                        "XTAL"
+                    ],
+                    "mpn_patterns": [
+                        "ABM",
+                        "ABS07",
+                        "ABLS",
+                        "FA-",
+                        "FC-",
+                        "MA-",
+                        "MC-",
+                        "TSX-",
+                        "9B",
+                        "9C",
+                        "9HT",
+                        "7M",
+                        "7A",
+                        "NX32",
+                        "NX53",
+                        "NX21",
+                        "ECS-",
+                        "ECX-",
+                        "ATS49S",
+                        "HC49SMD",
+                        "HC49S-SMD"
+                    ]
+                },
+                "수정진동자-DIP": {
+                    "mounting": "DIP",
+                    "packages": [
+                        "HC49",
+                        "HC49U",
+                        "HC49S",
+                        "HC18",
+                        "HC51"
                     ],
                     "aliases": [
                         "CRYSTAL",
                         "XTAL",
-                        "QUARTZ"
+                        "QUARTZ",
+                        "THROUGH HOLE CRYSTAL"
+                    ],
+                    "mpn_patterns": [
+                        "HC49",
+                        "HC18",
+                        "HC51",
+                        "ATS-49",
+                        "ATS49",
+                        "AT49",
+                        "HC49U"
                     ]
                 },
                 "세라믹진동자": {
@@ -1968,24 +2114,63 @@
                     "aliases": [
                         "CERAMIC RESONATOR",
                         "RESONATOR"
+                    ],
+                    "mpn_patterns": [
+                        "CSTC",
+                        "CSTS",
+                        "ZTT",
+                        "ZTA"
                     ]
                 },
-                "오실레이터": {
-                    "mounting": "SMD/DIP",
+                "오실레이터-SMD": {
+                    "mounting": "SMD",
+                    "packages": [
+                        "3.2x2.5",
+                        "5x7",
+                        "7x5",
+                        "2.5x2.0",
+                        "2016",
+                        "2520"
+                    ],
+                    "aliases": [
+                        "SMD OSCILLATOR",
+                        "OSC",
+                        "XO",
+                        "TCXO",
+                        "VCXO"
+                    ],
+                    "mpn_patterns": [
+                        "SG-",
+                        "SG2",
+                        "7C",
+                        "7W",
+                        "SIT15",
+                        "SIT88",
+                        "ASE",
+                        "ASV",
+                        "ASFL",
+                        "NZ25",
+                        "DSC1",
+                        "DSC6"
+                    ]
+                },
+                "오실레이터-DIP": {
+                    "mounting": "DIP",
                     "packages": [
                         "DIP-8",
                         "DIP-14",
-                        "SMD",
-                        "5x7",
-                        "7x5",
-                        "3.2x2.5"
+                        "HALF-SIZE",
+                        "FULL-SIZE"
                     ],
                     "aliases": [
                         "OSCILLATOR",
-                        "OSC",
-                        "TCXO",
-                        "VCXO",
-                        "XO"
+                        "DIP OSC",
+                        "CLOCK OSCILLATOR"
+                    ],
+                    "mpn_patterns": [
+                        "SG-531",
+                        "SG-615",
+                        "MXO45"
                     ]
                 }
             },

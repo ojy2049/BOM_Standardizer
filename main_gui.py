@@ -725,9 +725,9 @@ class ProcessWorker:
                     '수량': row['수량'],
                     '위치': row['위치'],
                     '장착방식': info.mounting_type,
-                    '판단근거': info.classification_reason,  # 판단근거 필드 추가 (VBA 매크로 기능)
+                    '판단근거': info.classification_reason,
                     '공식부품명': info.official_name,
-                    '공급사': info.supplier,
+                    '제조사': info.manufacturer,
                     '공급사부품번호': info.supplier_pn,
                     '데이터시트URL': info.datasheet_url,
                 })

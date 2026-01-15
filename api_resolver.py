@@ -1014,6 +1014,9 @@ class MountingClassifier:
                             pkg_mnt = get_mounting_type_from_package(pkg_name)
                             if pkg_mnt != '확인필요':
                                 return pkg_mnt, f"{reason} + Package({pkg_name})"
+                    
+                    # 패키지 판별 실패해도 패턴 매칭 성공이므로 확인필요 반환
+                    return "확인필요", f"{reason} (SMD/DIP 혼용)"
         
         # === [로직 1] 절대적 키워드 우선 검색 (가장 강력함) ===
         

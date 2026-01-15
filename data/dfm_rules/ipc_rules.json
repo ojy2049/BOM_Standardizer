@@ -1,0 +1,279 @@
+{
+  "standard": "IPC-A-610/IPC-7351",
+  "version": "1.0.0",
+  "description": "DFM/DFA rules based on IPC standards for PCB assembly",
+  
+  "component_spacing": {
+    "description": "Minimum spacing between components",
+    "unit": "mm",
+    "rules": {
+      "chip_to_chip": {
+        "0201": {"min": 0.15, "recommended": 0.2},
+        "0402": {"min": 0.2, "recommended": 0.25},
+        "0603": {"min": 0.25, "recommended": 0.3},
+        "0805": {"min": 0.3, "recommended": 0.4},
+        "1206": {"min": 0.4, "recommended": 0.5},
+        "default": {"min": 0.5, "recommended": 0.75}
+      },
+      "chip_to_ic": {
+        "min": 0.5,
+        "recommended": 0.75
+      },
+      "ic_to_ic": {
+        "min": 0.75,
+        "recommended": 1.0
+      },
+      "smd_to_through_hole": {
+        "min": 1.0,
+        "recommended": 1.5
+      },
+      "component_to_board_edge": {
+        "min": 0.5,
+        "recommended": 1.0,
+        "for_vcut": 3.0,
+        "for_routing": 1.5
+      },
+      "component_to_via": {
+        "min": 0.25,
+        "recommended": 0.5
+      },
+      "tall_component_spacing": {
+        "description": "Additional spacing for components > 5mm height",
+        "additional_mm": 1.0
+      }
+    }
+  },
+  
+  "solder_paste": {
+    "description": "Solder paste stencil design rules",
+    "rules": {
+      "aperture_reduction": {
+        "0201": {"reduction_percent": 10, "min_area_ratio": 0.5},
+        "0402": {"reduction_percent": 5, "min_area_ratio": 0.6},
+        "0603": {"reduction_percent": 0, "min_area_ratio": 0.66},
+        "default": {"reduction_percent": 0, "min_area_ratio": 0.66}
+      },
+      "stencil_thickness": {
+        "fine_pitch": {"max_pitch_mm": 0.5, "thickness_mm": 0.1},
+        "standard": {"max_pitch_mm": 1.0, "thickness_mm": 0.12},
+        "large_components": {"thickness_mm": 0.15}
+      },
+      "aspect_ratio": {
+        "min": 1.5,
+        "description": "Width/Thickness ratio for proper paste release"
+      },
+      "area_ratio": {
+        "min": 0.66,
+        "recommended": 0.75,
+        "description": "Aperture area / Wall area ratio"
+      }
+    }
+  },
+  
+  "pad_design": {
+    "description": "Pad design rules for SMD components",
+    "rules": {
+      "pad_to_pad_spacing": {
+        "fine_pitch_ic": {"min": 0.2, "recommended": 0.25},
+        "standard_ic": {"min": 0.25, "recommended": 0.3},
+        "discrete": {"min": 0.3, "recommended": 0.5}
+      },
+      "solder_mask_clearance": {
+        "min": 0.05,
+        "recommended": 0.075,
+        "max": 0.15
+      },
+      "thermal_relief": {
+        "spoke_width": {"min": 0.2, "recommended": 0.3},
+        "spoke_count": {"min": 2, "recommended": 4}
+      }
+    }
+  },
+  
+  "via_rules": {
+    "description": "Via design rules",
+    "rules": {
+      "via_in_pad": {
+        "allowed": false,
+        "if_allowed": {
+          "must_be_filled": true,
+          "must_be_planarized": true
+        }
+      },
+      "via_to_pad_spacing": {
+        "min": 0.25,
+        "recommended": 0.5
+      },
+      "via_size": {
+        "drill_min": 0.2,
+        "drill_recommended": 0.3,
+        "annular_ring_min": 0.1
+      }
+    }
+  },
+  
+  "polarity_rules": {
+    "description": "Rules for polarized components",
+    "rules": {
+      "marking_required": ["capacitor_polarized", "diode", "led", "ic", "transistor", "connector"],
+      "orientation_consistency": {
+        "description": "Polarized components should face same direction when possible",
+        "applies_to": ["diode", "led", "capacitor_polarized"],
+        "tolerance_degrees": 0
+      },
+      "cathode_marking": {
+        "led": "visible_silkscreen",
+        "diode": "band_marking"
+      },
+      "pin1_marking": {
+        "ic": ["dot", "notch", "bevel"],
+        "connector": "triangle_or_number"
+      }
+    }
+  },
+  
+  "thermal_rules": {
+    "description": "Thermal management rules",
+    "rules": {
+      "high_power_components": {
+        "thermal_via_required": true,
+        "min_thermal_vias": 4,
+        "via_pattern": "grid",
+        "copper_area_min_mm2": 100
+      },
+      "component_spacing_thermal": {
+        "between_high_power": {"min": 5.0, "recommended": 10.0},
+        "high_power_to_sensitive": {"min": 10.0, "recommended": 15.0}
+      },
+      "thermal_pad": {
+        "exposed_pad_connection": "required",
+        "via_in_thermal_pad": "filled_and_planarized"
+      }
+    }
+  },
+  
+  "fiducial_rules": {
+    "description": "Fiducial mark rules for SMT assembly",
+    "rules": {
+      "global_fiducials": {
+        "count": {"min": 2, "recommended": 3},
+        "arrangement": "asymmetric_triangle",
+        "position": "diagonal_corners"
+      },
+      "local_fiducials": {
+        "required_for": ["fine_pitch_ic", "bga", "qfn"],
+        "pitch_threshold_mm": 0.5,
+        "count_per_component": 2,
+        "position": "diagonal_corners_of_component"
+      },
+      "fiducial_design": {
+        "diameter_mm": {"min": 1.0, "recommended": 1.5, "max": 3.0},
+        "clearance_mm": {"min": 2.0, "recommended": 3.0},
+        "shape": "circle",
+        "surface": "bare_copper_or_immersion_gold"
+      }
+    }
+  },
+  
+  "silkscreen_rules": {
+    "description": "Silkscreen design rules",
+    "rules": {
+      "line_width": {"min": 0.15, "recommended": 0.2},
+      "text_height": {"min": 0.8, "recommended": 1.0},
+      "clearance_to_pad": {"min": 0.15, "recommended": 0.2},
+      "reference_designator": {
+        "required": true,
+        "position": "adjacent_to_component",
+        "readable_after_assembly": true
+      }
+    }
+  },
+  
+  "assembly_rules": {
+    "description": "General assembly rules",
+    "rules": {
+      "component_height": {
+        "max_mm": 25,
+        "shadow_effect_threshold_mm": 10,
+        "reflow_limit_mm": 15
+      },
+      "bottom_side_components": {
+        "max_weight_g": 10,
+        "adhesive_required_above_g": 5,
+        "max_height_mm": 6
+      },
+      "fine_pitch": {
+        "threshold_mm": 0.5,
+        "requires_local_fiducials": true,
+        "requires_paste_inspection": true
+      },
+      "bga_rules": {
+        "requires_xray_inspection": true,
+        "requires_local_fiducials": true,
+        "reballing_zone_mm": 5
+      }
+    }
+  },
+  
+  "testability_rules": {
+    "description": "Design for Test (DFT) rules",
+    "rules": {
+      "test_point": {
+        "min_diameter_mm": 0.9,
+        "recommended_diameter_mm": 1.0,
+        "min_spacing_mm": 2.54,
+        "clearance_to_component_mm": 1.0
+      },
+      "probe_access": {
+        "single_side_preferred": true,
+        "access_from_bottom": "recommended"
+      },
+      "test_coverage": {
+        "net_access_target_percent": 95,
+        "critical_nets_access": 100
+      }
+    }
+  },
+  
+  "panelization_rules": {
+    "description": "Panel design rules for assembly",
+    "rules": {
+      "rail_width": {
+        "min_mm": 5,
+        "recommended_mm": 10
+      },
+      "tooling_holes": {
+        "diameter_mm": 3.0,
+        "count": {"min": 2, "recommended": 3},
+        "position": "corners_and_center"
+      },
+      "board_spacing": {
+        "vcut_mm": 0,
+        "routing_mm": 2.0
+      },
+      "breakaway_tab": {
+        "width_mm": {"min": 3, "recommended": 5},
+        "mousebite_holes": {"count": 3, "diameter_mm": 0.5, "spacing_mm": 0.8}
+      }
+    }
+  },
+  
+  "severity_levels": {
+    "critical": {
+      "description": "Must fix before production",
+      "examples": ["component_overlap", "short_circuit", "missing_fiducial"]
+    },
+    "major": {
+      "description": "Should fix, may cause yield issues",
+      "examples": ["spacing_violation", "thermal_issue", "polarity_unclear"]
+    },
+    "minor": {
+      "description": "Recommended fix for best practices",
+      "examples": ["silkscreen_overlap", "suboptimal_orientation", "missing_test_point"]
+    },
+    "info": {
+      "description": "Informational, no action required",
+      "examples": ["design_note", "recommendation"]
+    }
+  }
+}

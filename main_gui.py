@@ -22,6 +22,13 @@ from bom_parser import BOMParser
 from api_resolver import PartResolver, PartInfo, AliasManager, MPNNormalizer
 from excel_writer import ExcelWriter
 
+# NPI Pro 모듈 (옵션)
+try:
+    from npi.gui_frames import NPIProFrame
+    NPI_AVAILABLE = True
+except ImportError:
+    NPI_AVAILABLE = False
+
 
 class ToolTip:
     """툴팁 클래스"""
@@ -753,7 +760,7 @@ class MainApplication(tk.Tk):
         self._init_ui()
     
     def _init_ui(self):
-        self.title("BOM 정규화 도구 v1.0")
+        self.title("BOM 정규화 도구 v2.2 (NPI Pro)")
         self.geometry("1200x800")
         
         # 스타일 설정
@@ -830,6 +837,11 @@ class MainApplication(tk.Tk):
         # 탭 4: 설정
         self.settings_frame = SettingsFrame(self.notebook)
         self.notebook.add(self.settings_frame, text="설정")
+        
+        # 탭 5: NPI Pro (옵션)
+        if NPI_AVAILABLE:
+            self.npi_frame = NPIProFrame(self.notebook, self._get_result_df)
+            self.notebook.add(self.npi_frame, text="🚀 NPI Pro")
         
         # 하단: 진행률 & 버튼
         bottom_frame = ttk.Frame(main_frame)
@@ -1024,6 +1036,10 @@ class MainApplication(tk.Tk):
             stats['uncertain'] = len(df[df['장착방식'] == '확인필요'])
             stats['unknown'] = len(df[df['장착방식'] == '미확정'])
         return stats
+    
+    def _get_result_df(self) -> Optional[pd.DataFrame]:
+        """현재 결과 DataFrame 반환 (NPI Pro에서 사용)"""
+        return self.result_df
     
     def _save_excel(self):
         """엑셀 저장"""

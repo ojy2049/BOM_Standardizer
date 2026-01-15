@@ -28,6 +28,12 @@ try:
 except ImportError:
     NPI_MODULES_AVAILABLE = False
 
+# 부품 라이브러리 모듈 (선택적 임포트)
+try:
+    from library_gui import PartsLibraryFrame, PARTS_LIBRARY_AVAILABLE
+except ImportError:
+    PARTS_LIBRARY_AVAILABLE = False
+
 
 class ToolTip:
     """툴팁 클래스"""
@@ -841,6 +847,11 @@ class MainApplication(tk.Tk):
         # 탭 5: 설정
         self.settings_frame = SettingsFrame(self.notebook)
         self.notebook.add(self.settings_frame, text="설정")
+        
+        # 탭 6: 부품 라이브러리 (PARTS_LIBRARY 모듈이 있는 경우만)
+        if PARTS_LIBRARY_AVAILABLE:
+            self.library_frame = PartsLibraryFrame(self.notebook, self._get_result_df)
+            self.notebook.add(self.library_frame, text="부품 라이브러리")
         
         # 하단: 진행률 & 버튼
         bottom_frame = ttk.Frame(main_frame)

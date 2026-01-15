@@ -405,6 +405,32 @@ class MainApplication(tk.Tk):
 └─────────────────────────────────────────┘
 ```
 
+### 3.7 NPI 관련 모듈 (New in v2.2.0)
+
+#### centroid_parser.py
+- **역할**: PCB 설계 툴에서 출력된 Centroid(좌표) 파일을 파싱하고 BOM 데이터와 매칭합니다.
+- **주요 기능**:
+  - CSV, TXT, Excel 등 다양한 포맷 지원
+  - RefDes, X, Y, Rotation, Layer 컬럼 자동 감지
+  - mm/mil 단위 자동 변환
+  - BOM의 RefDes와 좌표 파일의 RefDes 비교 및 매칭
+
+#### pnp_generator.py
+- **역할**: 매칭된 데이터를 기반으로 SMT 장비용 프로그램을 생성합니다.
+- **주요 기능**:
+  - Samsung SM 시리즈 (SM421, SM471 등) 지원
+  - SSA (Samsung Standard ASCII) 파일 생성
+  - 피더 리스트(Feeder List) 자동 생성 및 최적화
+
+#### dfm_analyzer.py
+- **역할**: 제조성 검토(DFM)를 수행하여 잠재적인 불량을 예방합니다.
+- **검사 항목**:
+  - 부품 간 최소 간격 검사
+  - 보드 가장자리 여유폭 검사
+  - 극성 부품 확인
+  - Tombstone(맨해튼 현상) 위험 부품 식별
+  - Fiducial Mark 포함 여부 확인
+
 ---
 
 ## 4. 데이터 흐름

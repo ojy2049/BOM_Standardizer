@@ -1048,10 +1048,6 @@ class MainApplication(tk.Tk):
         
         self.progress_label_var.set(message)
     
-    def _get_result_df(self) -> pd.DataFrame:
-        """결과 DataFrame 반환 (NPI 모듈용)"""
-        return self.result_df
-    
     def _get_statistics(self, df: pd.DataFrame) -> dict:
         """통계 계산 (VBA 매크로와 유사하게 세분화)"""
         stats = {'total': len(df), 'smd': 0, 'smd_estimated': 0, 'dip': 0, 'uncertain': 0, 'unknown': 0}

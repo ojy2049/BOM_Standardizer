@@ -22,6 +22,12 @@ from bom_parser import BOMParser
 from api_resolver import PartResolver, PartInfo, AliasManager, MPNNormalizer
 from excel_writer import ExcelWriter
 
+# NPI 모듈 (선택적 임포트)
+try:
+    from npi_gui import NPIFrame, add_npi_tab, NPI_MODULES_AVAILABLE
+except ImportError:
+    NPI_MODULES_AVAILABLE = False
+
 
 class ToolTip:
     """툴팁 클래스"""
@@ -823,11 +829,16 @@ class MainApplication(tk.Tk):
         self.stats_var = tk.StringVar(value="")
         ttk.Label(result_label_frame, textvariable=self.stats_var, font=('맑은 고딕', 10, 'bold')).pack(pady=5)
         
-        # 탭 3: 별칭 관리
+        # 탭 3: NPI / P&P (NPI 모듈이 있는 경우만)
+        if NPI_MODULES_AVAILABLE:
+            self.npi_frame = NPIFrame(self.notebook, self._get_result_df)
+            self.notebook.add(self.npi_frame, text="NPI / P&P")
+        
+        # 탭 4: 별칭 관리
         self.alias_frame = AliasManagerFrame(self.notebook)
         self.notebook.add(self.alias_frame, text="별칭 관리")
         
-        # 탭 4: 설정
+        # 탭 5: 설정
         self.settings_frame = SettingsFrame(self.notebook)
         self.notebook.add(self.settings_frame, text="설정")
         
@@ -1013,6 +1024,10 @@ class MainApplication(tk.Tk):
             messagebox.showwarning("오류", message)
         
         self.progress_label_var.set(message)
+    
+    def _get_result_df(self) -> pd.DataFrame:
+        """결과 DataFrame 반환 (NPI 모듈용)"""
+        return self.result_df
     
     def _get_statistics(self, df: pd.DataFrame) -> dict:
         """통계 계산 (VBA 매크로와 유사하게 세분화)"""

@@ -809,6 +809,34 @@ class MainApplication(tk.Tk):
         self.browse_btn = ttk.Button(file_frame, text="파일 찾기...", command=self._browse_file)
         self.browse_btn.pack(side='right')
         
+        # 하단: 진행률 & 버튼 (노트북보다 먼저 pack하여 하단 고정)
+        bottom_frame = ttk.Frame(main_frame)
+        bottom_frame.pack(side='bottom', fill='x')
+        
+        # 진행률
+        progress_frame = ttk.Frame(bottom_frame)
+        progress_frame.pack(fill='x', pady=(0, 10))
+        
+        self.progress_var = tk.IntVar(value=0)
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, maximum=100)
+        self.progress_bar.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        
+        self.progress_label_var = tk.StringVar(value="준비")
+        ttk.Label(progress_frame, textvariable=self.progress_label_var, width=30).pack(side='right')
+        
+        # 버튼
+        btn_frame = ttk.Frame(bottom_frame)
+        btn_frame.pack(fill='x')
+        
+        self.save_btn = ttk.Button(btn_frame, text="엑셀 저장", command=self._save_excel, state='disabled')
+        self.save_btn.pack(side='right', padx=5)
+        
+        self.stop_btn = ttk.Button(btn_frame, text="중단", command=self._stop_process, state='disabled')
+        self.stop_btn.pack(side='right', padx=5)
+        
+        self.process_btn = ttk.Button(btn_frame, text="처리 시작", command=self._start_process, state='disabled')
+        self.process_btn.pack(side='right', padx=5)
+        
         # 탭 노트북
         self.notebook = ttk.Notebook(main_frame)
         self.notebook.pack(fill='both', expand=True, pady=(0, 10))
@@ -864,34 +892,6 @@ class MainApplication(tk.Tk):
         if NPI_PRO_AVAILABLE:
             self.npi_pro_frame = NPIProFrame(self.notebook, self._get_result_df)
             self.notebook.add(self.npi_pro_frame, text="🚀 NPI Pro")
-        
-        # 하단: 진행률 & 버튼
-        bottom_frame = ttk.Frame(main_frame)
-        bottom_frame.pack(fill='x')
-        
-        # 진행률
-        progress_frame = ttk.Frame(bottom_frame)
-        progress_frame.pack(fill='x', pady=(0, 10))
-        
-        self.progress_var = tk.IntVar(value=0)
-        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, maximum=100)
-        self.progress_bar.pack(side='left', fill='x', expand=True, padx=(0, 10))
-        
-        self.progress_label_var = tk.StringVar(value="준비")
-        ttk.Label(progress_frame, textvariable=self.progress_label_var, width=30).pack(side='right')
-        
-        # 버튼
-        btn_frame = ttk.Frame(bottom_frame)
-        btn_frame.pack(fill='x')
-        
-        self.save_btn = ttk.Button(btn_frame, text="엑셀 저장", command=self._save_excel, state='disabled')
-        self.save_btn.pack(side='right', padx=5)
-        
-        self.stop_btn = ttk.Button(btn_frame, text="중단", command=self._stop_process, state='disabled')
-        self.stop_btn.pack(side='right', padx=5)
-        
-        self.process_btn = ttk.Button(btn_frame, text="처리 시작", command=self._start_process, state='disabled')
-        self.process_btn.pack(side='right', padx=5)
     
     def _browse_file(self):
         """파일 선택 다이얼로그"""

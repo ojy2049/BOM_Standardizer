@@ -1,13 +1,10 @@
 # BOM Standardizer & NPI Platform
 
-업체별 제각각인 BOM을 표준화하고, SMT 장비 프로그램 생성 및 제조 성 검토(DFM)까지 지원하는 통합 NPI 플랫폼입니다.
-
-업체별 제각각인 BOM을 표준화하고, SMT 장비 프로그램 생성 및 제조 성 검토(DFM)까지 지원하는 통합 NPI 플랫폼입니다.
-
-업체별 제각각 포맷의 BOM 파일을 자사 표준 BOM 양식으로 변환하는 GUI 프로그램입니다.
+업체별 제각각 포맷의 BOM 파일을 자사 표준 BOM 양식으로 변환하고, **상용 수준의 NPI(New Product Introduction) 기능**을 제공하는 GUI 프로그램입니다.
 
 ![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
+![NPI Pro](https://img.shields.io/badge/NPI_Pro-v1.0-orange.svg)
 
 ---
 
@@ -42,16 +39,57 @@
 - **카테고리 매핑**: 부품 카테고리 표준화 (RESISTOR-CHIP → 칩저항)
 - **가져오기/내보내기**: JSON 형식 별칭 사전 관리
 
-### 6. NPI 및 P&P 생성 (New)
+### 6. NPI 및 P&P 생성
 - **Centroid 파일 파싱**: PCB 좌표 파일 자동 인식 (CSV, TXT, Excel)
 - **Samsung SM 지원**: SM421, SM471 등 장비용 SSA, CSV, 피더리스트 출력
 - **DFM 분석**: 부품 간격, 극성, Tombstone 위험 등 제조성 검토
 - **BOM 매칭**: BOM과 좌표 데이터 자동 매칭 및 누락 검사
 
-### 7. 부품 라이브러리 및 AVL (New)
+### 7. 부품 라이브러리 및 AVL
 - **부품 DB**: SQLite 기반 부품 라이브러리 (생산상태, 리드타임 관리)
 - **AVL 관리**: 승인 공급업체 (Approved Vendor List) 관리
 - **위험도 분석**: 단종, 긴 리드타임, 단일 공급원 등 리스크 자동 평가
+
+### 8. 🚀 NPI Pro 기능 (v2.2 신규)
+
+#### 📁 BOM 버전 관리
+- **프로젝트별 BOM 저장**: 동일 프로젝트의 BOM을 버전별로 관리
+- **버전 비교**: 두 버전 간 차이점 분석 (추가/삭제/변경 항목 표시)
+- **변경 이력 추적**: 언제 무엇이 바뀌었는지 추적
+
+#### 🔍 DFM/DFA 분석 (Design for Manufacturing)
+- **Gerber/CAD 파일 파싱**: 보드 외곽, 부품 위치 추출
+- **Pick & Place 파일 지원**: CSV/TXT 형식 P&P 파일 분석
+- **IPC 기준 DFM 체크**:
+  - 부품 겹침 검사 (Critical)
+  - 부품 간격 검사 (Major)
+  - 보드 가장자리 간격 (V-cut 대비)
+  - 극성 부품 방향 일관성
+  - Fine pitch 부품 경고 (≤0.5mm)
+  - 고발열 부품 간격
+- **분석 보고서 생성**: 위반 사항 상세 보고서
+
+#### ⚙️ SMT 피더 설정
+- **Hanwha/Samsung SM 시리즈 지원**:
+  - SM411, SM421 (21,000 CPH)
+  - SM471 Plus, SM482 Plus (78,000 CPH)
+- **피더 슬롯 자동 배치**: 부품 패키지에 맞는 테이프 폭/슬롯 수 계산
+- **최적화 전략**:
+  - `balanced`: 전면/후면 균형 배치
+  - `front_first`: 전면 우선 배치
+  - `usage_based`: 사용량 많은 부품 중앙 배치
+- **필요 피더/노즐 목록**: 장비 셋업용 자동 생성
+- **CSV 내보내기**: 피더 리스트 출력
+
+#### 📐 패널라이제이션
+- **자동 패널 배열 계산**: PCB 크기 입력 → 최적 배열 제안
+- **분리 방식 지원**: V-Cut, Tab Routing (Mouse Bites)
+- **패널 요소 자동 배치**:
+  - 레일 (상/하/좌/우)
+  - 글로벌 피듀셜 (3점)
+  - 툴링홀 (3점)
+- **추천 패널 크기**: 활용률/비용 기준 최적 패널 추천
+- **DXF 내보내기**: 패널 도면 출력
 
 ---
 
@@ -168,7 +206,22 @@ BOM_Standardizer/
 ├── project_manager.py  # 프로젝트 관리 모듈
 ├── excel_writer.py     # 엑셀 출력 모듈
 │
-├── user_config.json    # 사용자 설정
+├── npi/                    # 🚀 NPI Pro 모듈 (v2.2 신규)
+│   ├── __init__.py         # 모듈 초기화
+│   ├── version_manager.py  # BOM 버전 관리
+│   ├── dfm_analyzer.py     # DFM/DFA 분석
+│   ├── feeder_optimizer.py # SMT 피더 최적화
+│   ├── panelization.py     # 패널라이제이션
+│   └── gui_frames.py       # NPI Pro GUI
+│
+├── data/                   # 데이터 파일
+│   ├── machines/           # 장비 스펙 (SM411, SM421, SM471+, SM482+)
+│   │   └── hanwha_sm_series.json
+│   ├── dfm_rules/          # DFM 규칙 (IPC 기준)
+│   │   └── ipc_rules.json
+│   └── bom_versions.db     # BOM 버전 DB (SQLite, 자동 생성)
+│
+├── user_config.json    # 사용자 설정 (자동 생성)
 ├── parts_library.db    # 부품 및 AVL 데이터베이스 (SQLite)
 ├── part_aliases.json   # 부품 별칭 사전
 ├── components_db.json  # 전자부품 DB
@@ -234,10 +287,17 @@ export MOUSER_API_KEY="your_api_key"
 
 ## 📝 버전 히스토리
 
-### v2.2.0 (2026-01-15)
+### v2.2.0 (2026-01-15) 🚀 NPI Pro
 - **NPI 기능 통합**: Centroid 파싱, DFM 분석, Samsung SM P&P 생성
 - **부품 라이브러리**: SQLite 기반 로컬 부품 DB 및 AVL 관리
 - **위험도 분석**: 부품 수급 리스크 자동 평가
+- **NPI Pro 기능 추가**: 상용 수준의 NPI 도구 통합
+  - **BOM 버전 관리**: 프로젝트별 BOM 저장, 버전 비교, 변경 추적
+  - **DFM/DFA 분석**: Gerber/P&P 파싱, IPC 기준 DFM 체크, 보고서 생성
+  - **SMT 피더 설정**: Hanwha SM411/421/471+/482+ 지원, 피더 자동 배치
+  - **패널라이제이션**: V-Cut/Tab routing, 최적 배열 계산, DXF 출력
+- **장비 스펙 DB**: Hanwha/Samsung SM 시리즈 피더/노즐 정보
+- **DFM 규칙 DB**: IPC-A-610/IPC-7351 기반 설계 규칙
 
 ### v2.1.1 (2026-01-15)
 - **분류 로직 버그 수정**: DB 순회 시 2단 구조(IC → LinearRegulator) 미인식 문제 해결

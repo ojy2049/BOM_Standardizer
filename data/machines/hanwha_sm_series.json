@@ -1,0 +1,317 @@
+{
+  "manufacturer": "Hanwha (Samsung)",
+  "series": "SM Series",
+  "machines": {
+    "SM411": {
+      "name": "SM411",
+      "type": "High-Speed Chip Mounter",
+      "speed_cph": 21000,
+      "accuracy_mm": 0.05,
+      "pcb_size": {
+        "min_x": 50,
+        "min_y": 50,
+        "max_x": 510,
+        "max_y": 460
+      },
+      "pcb_thickness": {
+        "min": 0.4,
+        "max": 4.0
+      },
+      "component_range": {
+        "min": "0402",
+        "max": "74mm x 74mm"
+      },
+      "feeder_capacity": {
+        "standard": 120,
+        "with_docking_cart": 112
+      },
+      "feeder_bank_slots": 60,
+      "heads": 8,
+      "nozzles_per_head": 1,
+      "vision_system": "Flying Vision",
+      "dimensions_mm": {
+        "width": 1650,
+        "depth": 1690,
+        "height": 1485
+      },
+      "weight_kg": 2000
+    },
+    "SM421": {
+      "name": "SM421",
+      "type": "High-Speed Flexible Mounter",
+      "speed_cph": 21000,
+      "accuracy_mm": 0.05,
+      "pcb_size": {
+        "min_x": 50,
+        "min_y": 50,
+        "max_x": 510,
+        "max_y": 460
+      },
+      "pcb_thickness": {
+        "min": 0.4,
+        "max": 4.0
+      },
+      "component_range": {
+        "min": "0402",
+        "max": "74mm x 74mm"
+      },
+      "feeder_capacity": {
+        "standard": 120,
+        "with_docking_cart": 112
+      },
+      "feeder_bank_slots": 60,
+      "heads": 6,
+      "nozzles_per_head": 1,
+      "vision_system": "Flying Vision",
+      "dimensions_mm": {
+        "width": 1650,
+        "depth": 1690,
+        "height": 1485
+      },
+      "weight_kg": 2000
+    },
+    "SM471_PLUS": {
+      "name": "SM471 Plus",
+      "type": "High-Speed Flexible Mounter",
+      "speed_cph": 78000,
+      "accuracy_mm": 0.025,
+      "pcb_size": {
+        "min_x": 50,
+        "min_y": 50,
+        "max_x": 510,
+        "max_y": 510
+      },
+      "pcb_thickness": {
+        "min": 0.38,
+        "max": 4.2
+      },
+      "component_range": {
+        "min": "0201",
+        "max": "74mm x 74mm"
+      },
+      "feeder_capacity": {
+        "standard": 120,
+        "with_docking_cart": 112
+      },
+      "feeder_bank_slots": 60,
+      "heads": 10,
+      "nozzles_per_head": 2,
+      "vision_system": "Flying Vision + Side Vision",
+      "features": [
+        "Auto Pickup Alignment",
+        "Advanced Vision System",
+        "High-Speed Twin Head"
+      ],
+      "dimensions_mm": {
+        "width": 1650,
+        "depth": 1800,
+        "height": 1485
+      },
+      "weight_kg": 2200
+    },
+    "SM482_PLUS": {
+      "name": "SM482 Plus",
+      "type": "High-Speed Multi-Function Mounter",
+      "speed_cph": 78000,
+      "accuracy_mm": 0.025,
+      "pcb_size": {
+        "min_x": 50,
+        "min_y": 50,
+        "max_x": 510,
+        "max_y": 510
+      },
+      "pcb_thickness": {
+        "min": 0.38,
+        "max": 4.2
+      },
+      "component_range": {
+        "min": "0201",
+        "max": "150mm x 150mm"
+      },
+      "feeder_capacity": {
+        "standard": 120,
+        "with_docking_cart": 112
+      },
+      "feeder_bank_slots": 60,
+      "heads": 10,
+      "nozzles_per_head": 2,
+      "vision_system": "Flying Vision + Side Vision + Coplanarity",
+      "features": [
+        "Auto Pickup Alignment",
+        "Coplanarity Check",
+        "Large Component Handling",
+        "Odd-Form Component Support"
+      ],
+      "dimensions_mm": {
+        "width": 1650,
+        "depth": 1800,
+        "height": 1485
+      },
+      "weight_kg": 2300
+    }
+  },
+  "feeders": {
+    "SME_8mm": {
+      "name": "SME 8mm Tape Feeder",
+      "tape_width_mm": 8,
+      "feed_pitch_mm": [2, 4],
+      "reel_diameter_mm": {"min": 178, "max": 180},
+      "slots_occupied": 1,
+      "component_sizes": ["0201", "0402", "0603", "0805", "1206"],
+      "features": ["IT Function", "Splicing Detection"]
+    },
+    "SME_8mm_L": {
+      "name": "SME 8mm Tape Feeder (Large Reel)",
+      "tape_width_mm": 8,
+      "feed_pitch_mm": [2, 4],
+      "reel_diameter_mm": {"min": 178, "max": 330},
+      "slots_occupied": 2,
+      "component_sizes": ["0201", "0402", "0603", "0805", "1206"],
+      "note": "Can occupy 1 slot if outermost width < 13mm"
+    },
+    "SME_12mm": {
+      "name": "SME 12mm Tape Feeder",
+      "tape_width_mm": 12,
+      "feed_pitch_mm": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 2,
+      "component_sizes": ["0805", "1206", "1210", "1812", "SOT-23", "SOT-223"]
+    },
+    "SME_16mm": {
+      "name": "SME 16mm Tape Feeder",
+      "tape_width_mm": 16,
+      "feed_pitch_mm": [4, 8, 12, 16, 20, 24],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 2,
+      "component_sizes": ["SOIC-8", "SOIC-14", "SOIC-16", "TSSOP-14", "TSSOP-16"]
+    },
+    "SME_24mm": {
+      "name": "SME 24mm Tape Feeder",
+      "tape_width_mm": 24,
+      "feed_pitch_mm": [4, 8, 12, 16, 20, 24, 28, 32],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 3,
+      "component_sizes": ["SOIC-18", "SOIC-20", "TSSOP-20", "SSOP-20", "QFN-16", "QFN-20"]
+    },
+    "SME_32mm": {
+      "name": "SME 32mm Tape Feeder",
+      "tape_width_mm": 32,
+      "feed_pitch_mm": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 4,
+      "component_sizes": ["SOIC-24", "SOIC-28", "TQFP-32", "QFN-24", "QFN-28"]
+    },
+    "SME_44mm": {
+      "name": "SME 44mm Tape Feeder",
+      "tape_width_mm": 44,
+      "feed_pitch_mm": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 4,
+      "component_sizes": ["TQFP-44", "TQFP-48", "LQFP-44", "QFN-32", "QFN-36"]
+    },
+    "SME_56mm": {
+      "name": "SME 56mm Tape Feeder",
+      "tape_width_mm": 56,
+      "feed_pitch_mm": [8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 5,
+      "component_sizes": ["TQFP-64", "LQFP-64", "QFN-48", "QFN-56"]
+    },
+    "SME_72mm": {
+      "name": "SME 72mm Tape Feeder",
+      "tape_width_mm": 72,
+      "feed_pitch_mm": [8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64],
+      "reel_diameter_mm": {"min": 178, "max": 380},
+      "slots_occupied": 6,
+      "component_sizes": ["TQFP-100", "LQFP-100", "BGA"]
+    },
+    "TRAY_MATRIX": {
+      "name": "Matrix Tray Feeder",
+      "tray_size_mm": {"width": 322, "depth": 135},
+      "slots_occupied": 10,
+      "component_sizes": ["PLCC", "QFP", "BGA", "Large IC"]
+    },
+    "STICK_FEEDER": {
+      "name": "Stick Feeder",
+      "stick_length_mm": 508,
+      "slots_occupied": 2,
+      "component_sizes": ["DIP", "SIP", "SOIC"]
+    }
+  },
+  "package_to_feeder_mapping": {
+    "0201": "SME_8mm",
+    "0402": "SME_8mm",
+    "0603": "SME_8mm",
+    "0805": "SME_8mm",
+    "1005": "SME_8mm",
+    "1206": "SME_12mm",
+    "1210": "SME_12mm",
+    "1812": "SME_12mm",
+    "2010": "SME_12mm",
+    "2512": "SME_16mm",
+    "SOT-23": "SME_12mm",
+    "SOT-89": "SME_12mm",
+    "SOT-223": "SME_12mm",
+    "SOT-323": "SME_8mm",
+    "SOT-363": "SME_8mm",
+    "SOT-563": "SME_8mm",
+    "SOT-723": "SME_8mm",
+    "SOIC-8": "SME_16mm",
+    "SOIC-14": "SME_16mm",
+    "SOIC-16": "SME_16mm",
+    "SOIC-18": "SME_24mm",
+    "SOIC-20": "SME_24mm",
+    "SOIC-24": "SME_32mm",
+    "SOIC-28": "SME_32mm",
+    "TSSOP-8": "SME_12mm",
+    "TSSOP-14": "SME_16mm",
+    "TSSOP-16": "SME_16mm",
+    "TSSOP-20": "SME_24mm",
+    "TSSOP-24": "SME_24mm",
+    "TSSOP-28": "SME_32mm",
+    "SSOP-8": "SME_12mm",
+    "SSOP-14": "SME_16mm",
+    "SSOP-16": "SME_16mm",
+    "SSOP-20": "SME_24mm",
+    "MSOP-8": "SME_8mm",
+    "MSOP-10": "SME_12mm",
+    "QFN-8": "SME_12mm",
+    "QFN-12": "SME_16mm",
+    "QFN-16": "SME_16mm",
+    "QFN-20": "SME_24mm",
+    "QFN-24": "SME_24mm",
+    "QFN-28": "SME_32mm",
+    "QFN-32": "SME_32mm",
+    "QFN-36": "SME_44mm",
+    "QFN-40": "SME_44mm",
+    "QFN-48": "SME_56mm",
+    "QFN-56": "SME_56mm",
+    "DFN-6": "SME_8mm",
+    "DFN-8": "SME_12mm",
+    "TQFP-32": "SME_32mm",
+    "TQFP-44": "SME_44mm",
+    "TQFP-48": "SME_44mm",
+    "TQFP-64": "SME_56mm",
+    "TQFP-100": "SME_72mm",
+    "LQFP-32": "SME_32mm",
+    "LQFP-44": "SME_44mm",
+    "LQFP-48": "SME_44mm",
+    "LQFP-64": "SME_56mm",
+    "LQFP-100": "SME_72mm",
+    "BGA": "TRAY_MATRIX",
+    "PLCC-20": "TRAY_MATRIX",
+    "PLCC-28": "TRAY_MATRIX",
+    "PLCC-44": "TRAY_MATRIX",
+    "PLCC-68": "TRAY_MATRIX"
+  },
+  "nozzle_types": {
+    "CN020": {"name": "CN020", "component_range": "0201-0402", "vacuum_mm": 0.2},
+    "CN040": {"name": "CN040", "component_range": "0402-0603", "vacuum_mm": 0.4},
+    "CN065": {"name": "CN065", "component_range": "0603-1206", "vacuum_mm": 0.65},
+    "CN140": {"name": "CN140", "component_range": "1206-SOT23", "vacuum_mm": 1.4},
+    "CN220": {"name": "CN220", "component_range": "SOIC-8 to SOIC-16", "vacuum_mm": 2.2},
+    "CN400": {"name": "CN400", "component_range": "SOIC-20 to TQFP-48", "vacuum_mm": 4.0},
+    "CN750": {"name": "CN750", "component_range": "TQFP-64 to LQFP-100", "vacuum_mm": 7.5},
+    "CN1100": {"name": "CN1100", "component_range": "BGA, Large QFP", "vacuum_mm": 11.0}
+  }
+}

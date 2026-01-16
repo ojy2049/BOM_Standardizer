@@ -520,8 +520,8 @@ class DigiKeyAPI:
             print(f"Digi-Key 인증 오류: {e}")
             return False
     
-    def search_part(self, keyword: str) -> Optional[PartInfo]:
-        """부품 검색"""
+    def search_part(self, keyword: str, manufacturer: str = "") -> Optional[PartInfo]:
+        """부품 검색 (제조사 필터 지원)"""
         if not self._get_access_token():
             return None
         
@@ -532,15 +532,23 @@ class DigiKeyAPI:
                 'Content-Type': 'application/json',
             }
             
+            # 검색 요청 구성
+            search_request = {
+                'Keywords': keyword,
+                'Limit': 5,  # 여러 결과 중 가장 적합한 것 선택
+                'Offset': 0,
+            }
+            
+            # 제조사 필터 추가 (있으면)
+            if manufacturer and manufacturer.strip():
+                # Keywords에 제조사 포함
+                search_request['Keywords'] = f"{manufacturer.strip()} {keyword}"
+            
             # 키워드 검색
             response = requests.post(
                 f"{self.BASE_URL}/search/keyword",
                 headers=headers,
-                json={
-                    'Keywords': keyword,
-                    'Limit': 1,
-                    'Offset': 0,
-                },
+                json=search_request,
                 timeout=30
             )
             
@@ -1298,6 +1306,78 @@ class PartResolver:
         self.cache_ttl = config.get('cache_ttl_days', 30)
         self.use_api_fallback = config.get('use_api_fallback', False)  # API 폴백 비활성화 기본값
     
+    def _is_result_valid(self, official_name: str, mpn: str, spec: str) -> bool:
+        """
+        API 결과의 유효성 검증
+        공식부품명과 원본 MPN/스펙을 비교하여 너무 다르면 무효 처리
+        
+        Args:
+            official_name: API에서 반환된 공식 부품명
+            mpn: 원본 MPN
+            spec: 원본 스펙
+            
+        Returns:
+            True if valid, False if should be discarded
+        """
+        if not official_name:
+            return False
+        
+        official_upper = official_name.upper().strip()
+        official_norm = re.sub(r'[\s\-_./]', '', official_upper)  # 정규화된 버전
+        
+        # MPN이 있으면 MPN으로 비교
+        if mpn and mpn.strip():
+            mpn_upper = mpn.upper().strip()
+            
+            # 정확히 일치하거나 포함 관계면 유효
+            if mpn_upper == official_upper:
+                return True
+            if mpn_upper in official_upper or official_upper in mpn_upper:
+                return True
+            
+            # 문자/숫자 정규화 후 비교 (하이픈, 공백 제거)
+            mpn_norm = re.sub(r'[\s\-_./]', '', mpn_upper)
+            official_norm = re.sub(r'[\s\-_./]', '', official_upper)
+            
+            if mpn_norm == official_norm:
+                return True
+            if mpn_norm in official_norm or official_norm in mpn_norm:
+                return True
+            
+            # 유사도 계산 (편집 거리 기반)
+            similarity = MPNNormalizer.similarity(mpn, official_name)
+            if similarity >= 0.7:  # 70% 이상 유사하면 유효
+                return True
+            
+            # MPN이 있는데 전혀 다른 결과면 무효
+            return False
+        
+        # MPN이 없으면 스펙으로 비교 (더 느슨하게)
+        if spec and spec.strip():
+            spec_upper = spec.upper().strip()
+            
+            # 스펙에서 부품번호 패턴 추출
+            potential_mpns = re.findall(r'[A-Z0-9][A-Z0-9\-_]{4,}[A-Z0-9]', spec_upper)
+            
+            for potential in potential_mpns:
+                potential_norm = re.sub(r'[\s\-_./]', '', potential)
+                
+                if potential_norm in official_norm:
+                    return True
+                if official_norm in potential_norm:
+                    return True
+                
+                similarity = MPNNormalizer.similarity(potential, official_name)
+                if similarity >= 0.6:  # 스펙 기반은 60% 이상
+                    return True
+            
+            # 스펙에 부품번호 패턴이 없으면 일단 유효로 처리
+            if not potential_mpns:
+                return True
+        
+        # 기본적으로 유효 (검증할 정보가 없는 경우)
+        return True
+    
     def resolve(self, mpn: str = "", digi_pn: str = "", mouser_pn: str = "",
                 spec: str = "", package: str = "", category: str = "",
                 refdes: str = "", manufacturer: str = "") -> PartInfo:
@@ -1346,35 +1426,42 @@ class PartResolver:
             else:
                 search_term = spec.strip()
         
-        # === 1단계: 웹 검색 (DuckDuckGo) ===
-        if self.web_search.is_configured() and search_term:
+        # === 1단계: Digi-Key/Mouser API 우선 조회 ===
+        api_searched = False
+        if search_term:
+            for term in [mpn, digi_pn, mouser_pn, search_term]:
+                if not term or not term.strip():
+                    continue
+                
+                # Digi-Key API (제조사 정보 포함)
+                if self.digikey.is_configured():
+                    result = self.digikey.search_part(term, manufacturer)
+                    if result and result.official_name:
+                        # 결과 유효성 검증: 스펙/MPN과 공식부품명 비교
+                        if self._is_result_valid(result.official_name, mpn, spec):
+                            info = result
+                            api_searched = True
+                            break
+                    time.sleep(self.api_delay)
+                
+                # Mouser API
+                if self.mouser.is_configured():
+                    result = self.mouser.search_part(term)
+                    if result and result.official_name:
+                        # 결과 유효성 검증
+                        if self._is_result_valid(result.official_name, mpn, spec):
+                            info = result
+                            api_searched = True
+                            break
+                    time.sleep(self.api_delay)
+        
+        # === 2단계: 웹 검색 폴백 (API 결과 없을 때만) ===
+        if not info.official_name and self.web_search.is_configured() and search_term:
             result = self.web_search.search_part(search_term, manufacturer)
             if result:
                 info = result
         
-        # === 2단계: API 폴백 (선택적) ===
-        if not info.official_name and self.use_api_fallback and search_term:
-            for term in [mpn, digi_pn, mouser_pn]:
-                if not term or not term.strip():
-                    continue
-                    
-                # Digi-Key
-                if self.digikey.is_configured():
-                    result = self.digikey.search_part(term)
-                    if result:
-                        info = result
-                        break
-                    time.sleep(self.api_delay)
-                
-                # Mouser
-                if self.mouser.is_configured():
-                    result = self.mouser.search_part(term)
-                    if result:
-                        info = result
-                        break
-                    time.sleep(self.api_delay)
-        
-        # === 3단계: 휴리스틱 처리 ===
+        # === 3단계: 휴리스틱 처리 (API 결과 없는 부품만) ===
         if not info.official_name:
             info.official_name = mpn or digi_pn or mouser_pn or ""
             if not info.source:
@@ -1388,12 +1475,30 @@ class PartResolver:
                 info.supplier = "Mouser"
                 info.supplier_pn = mouser_pn
         
-        # 장착방식 분류 (웹 검색 결과의 mounting 정보 활용)
-        mounting_type, classification_reason = self.classifier.classify(
-            spec, info.package or package, info.mounting, mpn, category, refdes
-        )
-        info.mounting_type = mounting_type
-        info.classification_reason = classification_reason
+        # 장착방식 분류 (API 결과 우선, 없으면 휴리스틱)
+        # API에서 명확한 mounting 정보가 있으면 우선 사용
+        if info.source == "api" and info.mounting:
+            mounting_lower = info.mounting.lower()
+            if 'surface' in mounting_lower or 'smd' in mounting_lower or 'smt' in mounting_lower:
+                info.mounting_type = "SMD"
+                info.classification_reason = f"API Mounting Type: {info.mounting}"
+            elif 'through' in mounting_lower or 'hole' in mounting_lower or 'dip' in mounting_lower:
+                info.mounting_type = "DIP"
+                info.classification_reason = f"API Mounting Type: {info.mounting}"
+            else:
+                # API mounting 정보가 불명확하면 휴리스틱 사용
+                mounting_type, classification_reason = self.classifier.classify(
+                    spec, info.package or package, info.mounting, mpn, category, refdes
+                )
+                info.mounting_type = mounting_type
+                info.classification_reason = classification_reason
+        else:
+            # API 결과가 아니거나 mounting 정보가 없으면 휴리스틱 분류
+            mounting_type, classification_reason = self.classifier.classify(
+                spec, info.package or package, info.mounting, mpn, category, refdes
+            )
+            info.mounting_type = mounting_type
+            info.classification_reason = classification_reason
         
         # 캐시 저장
         if cache_key and self.use_cache:

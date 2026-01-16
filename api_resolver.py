@@ -735,7 +735,7 @@ class WebSearchResolver:
     
     def search_part(self, query: str, manufacturer: str = "") -> Optional[PartInfo]:
         """
-        DuckDuckGo 검색으로 부품 정보 조회
+        DuckDuckGo 검색으로 부품 정보 조회 (전자부품 관련 사이트 우선)
         
         Args:
             query: 검색어 (스펙 또는 MPN)
@@ -747,25 +747,88 @@ class WebSearchResolver:
         if not self.enabled or not self.ddgs or not query or not query.strip():
             return None
         
-        # 검색어 구성
+        # 전자부품 관련 키워드 추가
         search_query = query.strip()
         if manufacturer and manufacturer.strip():
             search_query = f"{manufacturer.strip()} {search_query}"
-        search_query += " datasheet"  # 데이터시트 페이지 우선
+        
+        # 전자부품 사이트 키워드 추가 (더 구체적)
+        search_query += " datasheet octopart digikey mouser"
         
         try:
-            # DuckDuckGo 검색 (최대 5개 결과)
-            results = list(self.ddgs.text(search_query, max_results=5))
+            # DuckDuckGo 검색 (지역 설정: 글로벌, 최대 10개 결과)
+            results = list(self.ddgs.text(search_query, region='wt-wt', max_results=10))
             
             if not results:
                 return None
             
+            # 전자부품 관련 결과만 필터링
+            filtered_results = self._filter_electronic_results(results)
+            
+            if not filtered_results:
+                # 필터링된 결과가 없으면 원본 결과 사용
+                filtered_results = results[:5]
+            
             # 결과 파싱
-            return self._parse_ddgs_results(results, query)
+            return self._parse_ddgs_results(filtered_results, query)
             
         except Exception as e:
             print(f"[WebSearch] 검색 오류: {e}")
             return None
+    
+    def _filter_electronic_results(self, results: list) -> list:
+        """전자부품 관련 결과만 필터링"""
+        # 전자부품 관련 도메인 및 키워드
+        trusted_domains = [
+            'digikey.', 'mouser.', 'octopart.', 'lcsc.', 'element14.',
+            'arrow.com', 'avnet.', 'farnell.', 'newark.', 'rs-online.',
+            'ti.com', 'st.com', 'microchip.', 'nxp.com', 'samsung.com/semiconductor',
+            'vishay.', 'rohm.', 'murata.', 'tdk.', 'yageo.', 'bourns.',
+            'on-semi', 'onsemi.', 'infineon.', 'analog.com', 'maxim',
+            'alldatasheet.', 'datasheetcatalog.', 'datasheet.', 'datasheets.',
+        ]
+        
+        # 전자부품 관련 키워드
+        electronic_keywords = [
+            'datasheet', 'electronic', 'component', 'capacitor', 'resistor',
+            'inductor', 'transistor', 'diode', 'ic', 'chip', 'smd', 'smt',
+            'led', 'mosfet', 'regulator', 'connector', 'crystal', 'oscillator',
+            'microcontroller', 'mcu', 'fpga', 'memory', 'eeprom', 'flash',
+            'semiconductor', 'pcb', '부품', '데이터시트', '전자부품',
+            'specification', 'package', 'footprint', 'schematic',
+        ]
+        
+        # 제외할 키워드 (전자부품과 관련 없는 콘텐츠)
+        exclude_keywords = [
+            'news', 'blog', 'forum', 'youtube', 'video', 'twitter', 'facebook',
+            'instagram', 'reddit', 'wikipedia', 'naver', '블로그', '카페', '뉴스',
+            'shopping', 'buy now', 'sale', 'deal', '쇼핑', '맛집', '여행',
+        ]
+        
+        filtered = []
+        for r in results:
+            if not isinstance(r, dict):
+                continue
+            
+            url = r.get('href', '').lower()
+            title = r.get('title', '').lower()
+            body = r.get('body', '').lower()
+            combined = f"{url} {title} {body}"
+            
+            # 제외 키워드 확인
+            if any(kw in combined for kw in exclude_keywords):
+                continue
+            
+            # 신뢰할 수 있는 도메인 확인
+            is_trusted = any(domain in url for domain in trusted_domains)
+            
+            # 전자부품 키워드 확인
+            has_electronic_keyword = any(kw in combined for kw in electronic_keywords)
+            
+            if is_trusted or has_electronic_keyword:
+                filtered.append(r)
+        
+        return filtered[:5]  # 최대 5개
     
     def _parse_ddgs_results(self, results: list, original_query: str) -> Optional[PartInfo]:
         """duckduckgo-search 라이브러리 결과 파싱"""
@@ -806,19 +869,41 @@ class WebSearchResolver:
                     info.official_name = matches[0]
                 break
         
-        # 제조사 추출
-        known_manufacturers = [
-            'SAMSUNG', 'MURATA', 'TDK', 'YAGEO', 'VISHAY', 'ROHM',
-            'TEXAS INSTRUMENTS', 'TI', 'STM', 'STMICROELECTRONICS',
-            'MICROCHIP', 'NXP', 'INFINEON', 'ON SEMI', 'ONSEMI',
-            'ANALOG DEVICES', 'MAXIM', 'DIODES', 'NEXPERIA',
-            'PANASONIC', 'NICHICON', 'KEMET', 'AVX', 'BOURNS',
+        # 제조사 추출 (공급사와 구분 필요)
+        # 공급사 목록 (제조사에서 제외)
+        distributors = [
+            'DIGIKEY', 'DIGI-KEY', 'MOUSER', 'ARROW', 'AVNET', 'FARNELL',
+            'ELEMENT14', 'RS COMPONENTS', 'RS-ONLINE', 'NEWARK', 'LCSC',
         ]
         
+        # 제조사 목록 (한국/일본/미국/유럽 제조사 포함)
+        known_manufacturers = [
+            # 한국 제조사
+            'YEONHO', '연호', 'SAMSUNG', '삼성', 'SAMWHA', '삼화', 
+            'SEMTECH KOREA', 'SEJIN', '세진', 'KORCHIP', '코아칩',
+            # 일본 제조사
+            'MURATA', 'TDK', 'ROHM', 'PANASONIC', 'NICHICON', 'NIPPON CHEMICON',
+            'RUBYCON', 'TAIYO YUDEN', 'KYOCERA', 'HIROSE', 'JAE', 'JST',
+            'OMRON', 'ALPS', 'HOSIDEN',
+            # 미국/유럽 제조사
+            'TEXAS INSTRUMENTS', 'STMICROELECTRONICS', 'STM',
+            'MICROCHIP', 'NXP', 'INFINEON', 'ON SEMICONDUCTOR', 'ONSEMI',
+            'ANALOG DEVICES', 'MAXIM INTEGRATED', 'MAXIM', 'DIODES INC', 'DIODES',
+            'NEXPERIA', 'VISHAY', 'YAGEO', 'KEMET', 'AVX', 'BOURNS',
+            'AMPHENOL', 'TE CONNECTIVITY', 'MOLEX', 'WURTH', 'LITTELFUSE',
+            # 커넥터 전문 제조사
+            'HARWIN', 'SAMTEC', 'FCI', 'PHOENIX CONTACT', 'WAGO',
+        ]
+        
+        # 검색 - 공급사가 아닌 제조사만
         for mfr in known_manufacturers:
-            if mfr.lower() in all_text:
-                info.manufacturer = mfr
-                break
+            mfr_lower = mfr.lower()
+            if mfr_lower in all_text:
+                # 공급사인지 확인
+                is_distributor = any(dist.lower() in mfr_lower for dist in distributors)
+                if not is_distributor:
+                    info.manufacturer = mfr
+                    break
         
         # 패키지 정보 추출
         package_patterns = [
@@ -865,8 +950,8 @@ class WebSearchResolver:
         if snippets:
             info.description = snippets[0][:200] if len(snippets[0]) > 200 else snippets[0]
         
-        # 유효한 결과인지 확인
-        if info.official_name or info.package or info.mounting:
+        # 유효한 결과인지 확인 (조건 완화: description, manufacturer도 포함)
+        if info.official_name or info.package or info.mounting or info.manufacturer or info.description:
             return info
         
         return None

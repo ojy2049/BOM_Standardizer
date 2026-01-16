@@ -17,6 +17,19 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
+# 웹 검색 통합을 위한 순환 import 방지 (런타임 import)
+WebSearchResolver = None
+PartInfo = None
+
+def _get_web_search():
+    """WebSearchResolver 지연 로딩"""
+    global WebSearchResolver, PartInfo
+    if WebSearchResolver is None:
+        from api_resolver import WebSearchResolver as WSR, PartInfo as PI
+        WebSearchResolver = WSR
+        PartInfo = PI
+    return WebSearchResolver
+
 
 class RiskLevel(Enum):
     """부품 위험도 등급"""
@@ -591,6 +604,264 @@ class PartsLibrary:
             return True, f"가져오기 완료: {parts_imported}개 부품, {avl_imported}개 AVL"
         except Exception as e:
             return False, f"가져오기 실패: {str(e)}"
+    
+    # ===== 웹 검색/API 통합 =====
+    
+    def enrich_part_from_web(self, mpn: str = "", manufacturer: str = "",
+                              spec: str = "", standard: str = "") -> Tuple[bool, str]:
+        """
+        Digi-Key API 또는 웹 검색으로 부품 정보 수집 및 라이브러리에 추가
+        
+        우선순위: Digi-Key API > 웹 검색 (DuckDuckGo)
+        
+        Args:
+            mpn: 제조사 부품번호 (MPN)
+            manufacturer: 제조사명
+            spec: 스펙/설명
+            standard: 규격
+            
+        Returns:
+            (성공여부, 메시지)
+        """
+        # 검색어 조합
+        search_parts = []
+        if standard and standard.strip():
+            search_parts.append(standard.strip())
+        if spec and spec.strip():
+            search_parts.append(spec.strip())
+        if manufacturer and manufacturer.strip():
+            search_parts.append(manufacturer.strip())
+        if mpn and mpn.strip():
+            search_parts.append(mpn.strip())
+        
+        search_query = ' '.join(search_parts).strip()
+        
+        if not search_query:
+            return False, "검색어가 비어있음 (스펙, 규격, MPN 중 하나 이상 필요)"
+        
+        # 저장용 키: MPN 우선, 없으면 스펙+규격 조합
+        save_key = mpn.strip() if mpn and mpn.strip() else search_query[:100]
+        
+        result = None
+        source_name = ""
+        
+        try:
+            # 1. Digi-Key API 시도 (설정되어 있으면)
+            result, source_name = self._try_digikey_api(search_query)
+            
+            # 2. 웹 검색 폴백
+            if not result:
+                result, source_name = self._try_web_search(search_query)
+            
+            if not result:
+                return False, "API/웹 검색 결과 없음"
+            
+            # 기존 부품 확인 (save_key로)
+            existing = self.get_part(save_key)
+            
+            if existing:
+                # 빈 필드만 업데이트
+                updated = False
+                if not existing.manufacturer and result.manufacturer:
+                    existing.manufacturer = result.manufacturer
+                    updated = True
+                if not existing.package and result.package:
+                    existing.package = result.package
+                    updated = True
+                if not existing.mounting_type and result.mounting:
+                    existing.mounting_type = result.mounting
+                    updated = True
+                if not existing.datasheet_url and result.datasheet_url:
+                    existing.datasheet_url = result.datasheet_url
+                    updated = True
+                if not existing.description and result.description:
+                    existing.description = result.description[:500]  # 길이 제한
+                    updated = True
+                
+                if updated:
+                    existing.source = "web_search"
+                    success = self.add_part(existing)
+                    return success, "업데이트됨" if success else "업데이트 실패"
+                else:
+                    return True, "이미 완전한 정보 보유"
+            else:
+                # 새 항목 생성
+                # 카테고리 추론 (검색어/패키지/설명 기반)
+                category = self._infer_category(search_query, result.package or "", result.description or "")
+                
+                entry = PartLibraryEntry(
+                    mpn=save_key,  # save_key 사용 (MPN 또는 스펙+규격 조합)
+                    manufacturer=result.manufacturer or manufacturer,
+                    description=result.description[:500] if result.description else spec or standard or "",
+                    category=category,
+                    package=result.package or "",
+                    mounting_type=result.mounting or "",
+                    datasheet_url=result.datasheet_url or "",
+                    source="web_search"
+                )
+                
+                success = self.add_part(entry)
+                return success, "추가됨" if success else "저장 실패"
+                
+        except Exception as e:
+            return False, f"오류: {str(e)}"
+    
+    def _try_digikey_api(self, search_query: str):
+        """Digi-Key API로 부품 검색 시도"""
+        try:
+            from config import load_config
+            config = load_config()
+            
+            client_id = config.get('digikey_client_id', '')
+            client_secret = config.get('digikey_client_secret', '')
+            
+            if not client_id or not client_secret:
+                return None, ""
+            
+            # DigiKeyAPI import
+            from api_resolver import DigiKeyAPI, PartInfo
+            
+            digikey = DigiKeyAPI(client_id, client_secret)
+            if not digikey.is_configured():
+                return None, ""
+            
+            result = digikey.search_part(search_query)
+            if result:
+                return result, "digikey"
+            
+            return None, ""
+            
+        except Exception as e:
+            print(f"[PartsLibrary] Digi-Key API 오류: {e}")
+            return None, ""
+    
+    def _try_web_search(self, search_query: str):
+        """웹 검색으로 부품 검색 시도 (폴백)"""
+        try:
+            WebSearchResolver = _get_web_search()
+            web_search = WebSearchResolver(enabled=True)
+            
+            if not web_search.is_configured():
+                return None, ""
+            
+            result = web_search.search_part(search_query, "")
+            if result:
+                return result, "web_search"
+            
+            return None, ""
+            
+        except Exception as e:
+            print(f"[PartsLibrary] 웹 검색 오류: {e}")
+            return None, ""
+    
+    def _infer_category(self, mpn: str, package: str, description: str) -> str:
+        """MPN/패키지/설명에서 카테고리 추론"""
+        text = f"{mpn} {package} {description}".upper()
+        
+        # 카테고리 키워드 매핑
+        category_keywords = {
+            "저항": ["RESISTOR", "RES ", "OHM", "KOHM", "MOHM"],
+            "콘덴서": ["CAPACITOR", "CAP ", "MLCC", "CERAMIC", "UF", "NF", "PF"],
+            "인덕터": ["INDUCTOR", "IND ", "CHOKE", "UH", "NH", "MH"],
+            "다이오드": ["DIODE", "LED", "ZENER", "SCHOTTKY", "TVS"],
+            "트랜지스터": ["TRANSISTOR", "MOSFET", "FET", "BJT", "NPN", "PNP"],
+            "IC": ["IC ", "MCU", "CPU", "FPGA", "ASIC", "MEMORY", "EEPROM", "FLASH",
+                   "OPAMP", "OP-AMP", "REGULATOR", "LDO", "DCDC", "CONVERTER"],
+            "커넥터": ["CONNECTOR", "CONN ", "HEADER", "SOCKET", "PLUG", "JACK"],
+            "크리스탈": ["CRYSTAL", "XTAL", "OSCILLATOR", "OSC "],
+        }
+        
+        for category, keywords in category_keywords.items():
+            for kw in keywords:
+                if kw in text:
+                    return category
+        
+        return ""  # 추론 실패
+    
+    def batch_enrich_from_web(self, mpn_list: List[str], 
+                              progress_callback=None) -> Dict[str, Any]:
+        """
+        여러 MPN을 웹 검색으로 일괄 수집
+        
+        Args:
+            mpn_list: MPN 목록
+            progress_callback: 진행 상황 콜백 함수 (current, total, mpn, status)
+            
+        Returns:
+            {'success': int, 'failed': int, 'skipped': int, 'details': [...]}
+        """
+        results = {
+            'success': 0,
+            'failed': 0,
+            'skipped': 0,
+            'details': []
+        }
+        
+        total = len(mpn_list)
+        processed_mpns = set()  # 중복 방지
+        
+        for i, mpn in enumerate(mpn_list):
+            if not mpn or not mpn.strip():
+                results['skipped'] += 1
+                continue
+            
+            mpn = mpn.strip()
+            
+            # 중복 건너뛰기
+            if mpn in processed_mpns:
+                results['skipped'] += 1
+                continue
+            processed_mpns.add(mpn)
+            
+            # 진행 상황 콜백
+            if progress_callback:
+                progress_callback(i + 1, total, mpn, "검색 중...")
+            
+            # 웹 검색 수행
+            success, message = self.enrich_part_from_web(mpn)
+            
+            if success:
+                results['success'] += 1
+            else:
+                results['failed'] += 1
+            
+            results['details'].append({
+                'mpn': mpn,
+                'success': success,
+                'message': message
+            })
+            
+            # 진행 상황 업데이트
+            if progress_callback:
+                progress_callback(i + 1, total, mpn, message)
+        
+        return results
+    
+    def enrich_from_bom_data(self, bom_parts: List[Dict[str, Any]], 
+                             progress_callback=None) -> Dict[str, Any]:
+        """
+        BOM 처리 결과에서 MPN 추출하여 라이브러리 보강
+        
+        Args:
+            bom_parts: BOM 부품 목록 [{'mpn': str, 'manufacturer': str, ...}, ...]
+            progress_callback: 진행 상황 콜백 (current, total, mpn, status)
+            
+        Returns:
+            수집 결과 요약
+        """
+        # MPN 추출 (중복 제거)
+        mpn_set = set()
+        for part in bom_parts:
+            mpn = part.get('mpn', '') or part.get('MPN', '') or part.get('부품번호', '')
+            if mpn and mpn.strip():
+                mpn_set.add(mpn.strip())
+        
+        mpn_list = list(mpn_set)
+        
+        if not mpn_list:
+            return {'success': 0, 'failed': 0, 'skipped': 0, 'details': []}
+        
+        return self.batch_enrich_from_web(mpn_list, progress_callback)
 
 
 # 전역 인스턴스

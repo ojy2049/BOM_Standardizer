@@ -287,6 +287,14 @@ export MOUSER_API_KEY="your_api_key"
 
 ## 📝 버전 히스토리
 
+### v2.2.1 (2026-01-16) 🔧 API 통합 개선
+- **Digi-Key API 부품 라이브러리 통합**: 부품 수집 시 Digi-Key API 우선 사용
+  - 설정된 API 키로 자동 조회
+  - 웹 검색 폴백 (API 결과 없을 시)
+- **웹 검색 개선**: 전자부품 관련 사이트 필터링 강화
+  - 제조사/공급사 구분 로직 추가
+  - 관련 없는 검색 결과 필터링
+
 ### v2.2.0 (2026-01-15) 🚀 NPI Pro
 - **NPI 기능 통합**: Centroid 파싱, DFM 분석, Samsung SM P&P 생성
 - **부품 라이브러리**: SQLite 기반 로컬 부품 DB 및 AVL 관리

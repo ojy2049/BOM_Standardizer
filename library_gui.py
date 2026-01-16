@@ -5,12 +5,14 @@
 - 부품 DB 관리
 - AVL 관리
 - 위험도 분석
+- 웹 검색을 통한 부품 정보 수집
 """
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Callable
 import pandas as pd
+import threading
 
 try:
     from parts_library import (
@@ -100,8 +102,22 @@ class PartsLibraryFrame(ttk.Frame):
         ttk.Button(btn_frame, text="추가", command=self._add_part).pack(side='left', padx=2)
         ttk.Button(btn_frame, text="편집", command=self._edit_part).pack(side='left', padx=2)
         ttk.Button(btn_frame, text="삭제", command=self._delete_part).pack(side='left', padx=2)
+        
+        # 웹 검색 수집 버튼
+        ttk.Separator(btn_frame, orient='vertical').pack(side='left', fill='y', padx=10)
+        ttk.Button(btn_frame, text="🔍 웹 검색 추가", command=self._web_search_add).pack(side='left', padx=2)
+        ttk.Button(btn_frame, text="📥 BOM에서 수집", command=self._collect_from_bom).pack(side='left', padx=2)
+        
         ttk.Button(btn_frame, text="내보내기", command=self._export_library).pack(side='right', padx=2)
         ttk.Button(btn_frame, text="가져오기", command=self._import_library).pack(side='right', padx=2)
+        
+        # 진행 상황 프레임 (숨김)
+        self.progress_frame = ttk.LabelFrame(frame, text="수집 진행 상황", padding=5)
+        self.progress_var = tk.IntVar(value=0)
+        self.progress_bar = ttk.Progressbar(self.progress_frame, variable=self.progress_var, maximum=100)
+        self.progress_bar.pack(fill='x', padx=5, pady=2)
+        self.progress_label_var = tk.StringVar(value="")
+        ttk.Label(self.progress_frame, textvariable=self.progress_label_var).pack(pady=2)
         
         self._update_parts_stats()
     
@@ -302,6 +318,97 @@ class PartsLibraryFrame(ttk.Frame):
             success, msg = self.library.import_from_json(file_path)
             messagebox.showinfo("결과", msg)
             self._show_all_parts()
+    
+    # ===== 웹 검색 수집 기능 =====
+    
+    def _web_search_add(self):
+        """MPN 입력하여 웹 검색으로 부품 추가"""
+        WebSearchDialog(self, self.library, on_complete=self._on_web_search_complete)
+    
+    def _on_web_search_complete(self, results: Dict[str, Any]):
+        """웹 검색 완료 콜백"""
+        success = results.get('success', 0)
+        failed = results.get('failed', 0)
+        
+        messagebox.showinfo(
+            "수집 완료",
+            f"성공: {success}개\n실패: {failed}개"
+        )
+        self._show_all_parts()
+        self._update_parts_stats()
+    
+    def _collect_from_bom(self):
+        """BOM에서 부품 정보 수집"""
+        if not self.get_bom_data:
+            messagebox.showinfo("안내", "BOM 데이터 콜백이 없습니다.")
+            return
+        
+        bom_df = self.get_bom_data()
+        if bom_df is None or bom_df.empty:
+            messagebox.showinfo("안내", "먼저 BOM을 처리해주세요.")
+            return
+        
+        # MPN 추출
+        mpn_list = []
+        for _, row in bom_df.iterrows():
+            mpn = str(row.get('공식부품명', '')).strip()
+            if mpn and mpn.lower() not in ['nan', '', 'none']:
+                mpn_list.append(mpn)
+        
+        mpn_list = list(set(mpn_list))  # 중복 제거
+        
+        if not mpn_list:
+            messagebox.showinfo("안내", "수집할 부품이 없습니다.")
+            return
+        
+        # 확인
+        if not messagebox.askyesno(
+            "확인",
+            f"{len(mpn_list)}개 부품을 웹 검색으로 수집하시겠습니까?\n"
+            f"(이미 라이브러리에 있는 부품은 건너뜁니다)"
+        ):
+            return
+        
+        # 진행 상황 표시
+        self.progress_frame.pack(fill='x', pady=(10, 0))
+        self.progress_var.set(0)
+        self.progress_label_var.set("수집 준비 중...")
+        self.update_idletasks()
+        
+        # 백그라운드 스레드에서 실행
+        def run_collection():
+            def on_progress(current, total, mpn, status):
+                progress = int(current / total * 100)
+                self.after(0, lambda: self._update_progress(progress, f"{current}/{total}: {mpn} - {status}"))
+            
+            results = self.library.batch_enrich_from_web(mpn_list, on_progress)
+            self.after(0, lambda: self._on_collection_complete(results))
+        
+        thread = threading.Thread(target=run_collection, daemon=True)
+        thread.start()
+    
+    def _update_progress(self, progress: int, message: str):
+        """진행 상황 업데이트 (메인 스레드)"""
+        self.progress_var.set(progress)
+        self.progress_label_var.set(message)
+        self.update_idletasks()
+    
+    def _on_collection_complete(self, results: Dict[str, Any]):
+        """수집 완료 처리"""
+        # 진행 상황 숨기기
+        self.progress_frame.pack_forget()
+        
+        success = results.get('success', 0)
+        failed = results.get('failed', 0)
+        skipped = results.get('skipped', 0)
+        
+        messagebox.showinfo(
+            "수집 완료",
+            f"성공: {success}개\n실패: {failed}개\n건너뜀: {skipped}개"
+        )
+        
+        self._show_all_parts()
+        self._update_parts_stats()
     
     # ===== AVL 기능 =====
     
@@ -633,6 +740,140 @@ class AVLEditDialog(tk.Toplevel):
             self.destroy()
         else:
             messagebox.showerror("오류", "저장 실패")
+
+
+class WebSearchDialog(tk.Toplevel):
+    """웹 검색으로 부품 추가 다이얼로그"""
+    
+    def __init__(self, parent, library: PartsLibrary, on_complete=None):
+        super().__init__(parent)
+        self.library = library
+        self.on_complete = on_complete
+        
+        self.title("🔍 웹 검색으로 부품 추가")
+        self.geometry("500x400")
+        self.transient(parent)
+        self.grab_set()
+        
+        self._create_widgets()
+    
+    def _create_widgets(self):
+        frame = ttk.Frame(self, padding=15)
+        frame.pack(fill='both', expand=True)
+        
+        # 설명
+        desc_label = ttk.Label(
+            frame, 
+            text="부품명(스펙, 규격, 제조사 등)을 입력하면 웹 검색을 통해\n제조사, 카테고리, 패키지 정보를 자동으로 수집합니다.",
+            justify='center'
+        )
+        desc_label.pack(pady=(0, 15))
+        
+        # 입력 필드
+        input_frame = ttk.LabelFrame(frame, text="부품 정보 입력", padding=10)
+        input_frame.pack(fill='x', pady=(0, 10))
+        
+        # 규격
+        ttk.Label(input_frame, text="규격:").grid(row=0, column=0, sticky='e', padx=5, pady=3)
+        self.standard_var = tk.StringVar()
+        ttk.Entry(input_frame, textvariable=self.standard_var, width=40).grid(row=0, column=1, sticky='w', padx=5)
+        ttk.Label(input_frame, text="예: 0603, SOT-23", foreground='gray').grid(row=0, column=2, sticky='w')
+        
+        # 스펙
+        ttk.Label(input_frame, text="스펙:").grid(row=1, column=0, sticky='e', padx=5, pady=3)
+        self.spec_var = tk.StringVar()
+        spec_entry = ttk.Entry(input_frame, textvariable=self.spec_var, width=40)
+        spec_entry.grid(row=1, column=1, sticky='w', padx=5)
+        spec_entry.bind('<Return>', lambda e: self._search())
+        spec_entry.focus()
+        ttk.Label(input_frame, text="예: 100nF, 10K, 1uH", foreground='gray').grid(row=1, column=2, sticky='w')
+        
+        # 제조사
+        ttk.Label(input_frame, text="제조사:").grid(row=2, column=0, sticky='e', padx=5, pady=3)
+        self.manufacturer_var = tk.StringVar()
+        ttk.Entry(input_frame, textvariable=self.manufacturer_var, width=40).grid(row=2, column=1, sticky='w', padx=5)
+        ttk.Label(input_frame, text="예: Samsung, Murata", foreground='gray').grid(row=2, column=2, sticky='w')
+        
+        # MPN (선택)
+        ttk.Label(input_frame, text="MPN (선택):").grid(row=3, column=0, sticky='e', padx=5, pady=3)
+        self.mpn_var = tk.StringVar()
+        ttk.Entry(input_frame, textvariable=self.mpn_var, width=40).grid(row=3, column=1, sticky='w', padx=5)
+        ttk.Label(input_frame, text="예: GRM155R71C104KA88D", foreground='gray').grid(row=3, column=2, sticky='w')
+        
+        # 버튼
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=10)
+        
+        ttk.Button(btn_frame, text="검색 및 추가", command=self._search).pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="닫기", command=self._close).pack(side='left', padx=5)
+        
+        # 결과 표시
+        result_frame = ttk.LabelFrame(frame, text="수집 결과", padding=5)
+        result_frame.pack(fill='both', expand=True)
+        
+        self.result_text = scrolledtext.ScrolledText(result_frame, height=8, wrap='word')
+        self.result_text.pack(fill='both', expand=True)
+        
+        # 상태
+        self.status_var = tk.StringVar(value="스펙/규격/제조사를 입력하고 '검색 및 추가' 버튼을 클릭하세요.")
+        ttk.Label(frame, textvariable=self.status_var, foreground='gray').pack(pady=5)
+        
+        # 수집 결과 집계
+        self.results = {'success': 0, 'failed': 0}
+    
+    def _search(self):
+        """웹 검색 실행"""
+        spec = self.spec_var.get().strip()
+        standard = self.standard_var.get().strip()
+        manufacturer = self.manufacturer_var.get().strip()
+        mpn = self.mpn_var.get().strip()
+        
+        # 검색어 조합 (표시용)
+        search_parts = [p for p in [standard, spec, manufacturer, mpn] if p]
+        search_display = ' '.join(search_parts)
+        
+        if not search_display:
+            messagebox.showwarning("입력 오류", "스펙, 규격, 제조사, MPN 중 하나 이상을 입력하세요.")
+            return
+        
+        self.status_var.set(f"'{search_display[:30]}...' 검색 중...")
+        self.update_idletasks()
+        
+        # 백그라운드에서 검색
+        def do_search():
+            success, message = self.library.enrich_part_from_web(
+                mpn=mpn, 
+                manufacturer=manufacturer,
+                spec=spec,
+                standard=standard
+            )
+            self.after(0, lambda: self._show_result(search_display, success, message))
+        
+        thread = threading.Thread(target=do_search, daemon=True)
+        thread.start()
+    
+    def _show_result(self, mpn: str, success: bool, message: str):
+        """검색 결과 표시"""
+        if success:
+            self.results['success'] += 1
+            result_text = f"✅ {mpn}: {message}\n"
+        else:
+            self.results['failed'] += 1
+            result_text = f"❌ {mpn}: {message}\n"
+        
+        self.result_text.insert('end', result_text)
+        self.result_text.see('end')
+        
+        self.status_var.set(f"완료. 성공: {self.results['success']}, 실패: {self.results['failed']}")
+        
+        # 입력 필드 초기화
+        self.mpn_var.set("")
+    
+    def _close(self):
+        """다이얼로그 닫기"""
+        if self.on_complete:
+            self.on_complete(self.results)
+        self.destroy()
 
 
 def add_library_tab(notebook: ttk.Notebook, get_bom_data_callback=None) -> None:

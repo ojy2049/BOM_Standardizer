@@ -1308,75 +1308,79 @@ class PartResolver:
     
     def _is_result_valid(self, official_name: str, mpn: str, spec: str) -> bool:
         """
-        API 결과의 유효성 검증
-        공식부품명과 원본 MPN/스펙을 비교하여 너무 다르면 무효 처리
+        API 결과의 유효성 검증 (엄격 모드)
+        공식부품명과 원본 MPN/스펙을 비교하여 매칭되지 않으면 무효 처리
         
-        Args:
-            official_name: API에서 반환된 공식 부품명
-            mpn: 원본 MPN
-            spec: 원본 스펙
-            
+        검증 기준:
+        - MPN이 있으면: MPN과 공식부품명이 포함관계이거나 70% 이상 유사해야 함
+        - MPN이 없고 스펙만 있으면: 스펙에서 추출한 부품번호 패턴과 60% 이상 유사해야 함
+        - 둘 다 없거나 매칭 안되면: 무효 (공식부품명 비워둠)
+        
         Returns:
-            True if valid, False if should be discarded
+            True if valid match, False if should be discarded (leave empty)
         """
         if not official_name:
             return False
         
         official_upper = official_name.upper().strip()
-        official_norm = re.sub(r'[\s\-_./]', '', official_upper)  # 정규화된 버전
+        official_norm = re.sub(r'[\s\-_./()]', '', official_upper)
         
-        # MPN이 있으면 MPN으로 비교
+        # === 1. MPN이 있으면 MPN으로 검증 ===
         if mpn and mpn.strip():
             mpn_upper = mpn.upper().strip()
+            mpn_norm = re.sub(r'[\s\-_./()]', '', mpn_upper)
             
-            # 정확히 일치하거나 포함 관계면 유효
-            if mpn_upper == official_upper:
-                return True
-            if mpn_upper in official_upper or official_upper in mpn_upper:
-                return True
-            
-            # 문자/숫자 정규화 후 비교 (하이픈, 공백 제거)
-            mpn_norm = re.sub(r'[\s\-_./]', '', mpn_upper)
-            official_norm = re.sub(r'[\s\-_./]', '', official_upper)
-            
+            # 정확히 일치
             if mpn_norm == official_norm:
                 return True
-            if mpn_norm in official_norm or official_norm in mpn_norm:
+            
+            # 포함 관계 (MPN이 공식부품명에 포함되거나 그 반대)
+            if len(mpn_norm) >= 4 and (mpn_norm in official_norm or official_norm in mpn_norm):
                 return True
             
-            # 유사도 계산 (편집 거리 기반)
-            similarity = MPNNormalizer.similarity(mpn, official_name)
-            if similarity >= 0.7:  # 70% 이상 유사하면 유효
+            # 유사도 계산 (70% 이상)
+            similarity = MPNNormalizer.similarity(mpn_norm, official_norm)
+            if similarity >= 0.7:
                 return True
             
-            # MPN이 있는데 전혀 다른 결과면 무효
+            # MPN이 있는데 전혀 매칭 안되면 무효
             return False
         
-        # MPN이 없으면 스펙으로 비교 (더 느슨하게)
+        # === 2. MPN이 없으면 스펙에서 부품번호 패턴 찾아서 검증 ===
         if spec and spec.strip():
             spec_upper = spec.upper().strip()
             
-            # 스펙에서 부품번호 패턴 추출
-            potential_mpns = re.findall(r'[A-Z0-9][A-Z0-9\-_]{4,}[A-Z0-9]', spec_upper)
+            # 괄호 안 내용 추출 (예: "(2111-25PZB2-S4)" → "2111-25PZB2-S4")
+            paren_matches = re.findall(r'\(([^)]+)\)', spec_upper)
+            
+            # 스펙에서 부품번호 패턴 추출 (알파벳+숫자 조합, 5자 이상)
+            potential_mpns = re.findall(r'[A-Z][A-Z0-9\-_]{4,}[A-Z0-9]', spec_upper)
+            potential_mpns.extend(paren_matches)
             
             for potential in potential_mpns:
-                potential_norm = re.sub(r'[\s\-_./]', '', potential)
+                potential_norm = re.sub(r'[\s\-_./()]', '', potential.upper())
                 
-                if potential_norm in official_norm:
+                if len(potential_norm) < 4:
+                    continue
+                
+                # 정확히 일치 또는 포함
+                if potential_norm == official_norm:
                     return True
-                if official_norm in potential_norm:
+                if potential_norm in official_norm or official_norm in potential_norm:
                     return True
                 
-                similarity = MPNNormalizer.similarity(potential, official_name)
-                if similarity >= 0.6:  # 스펙 기반은 60% 이상
+                # 유사도 60% 이상
+                similarity = MPNNormalizer.similarity(potential_norm, official_norm)
+                if similarity >= 0.6:
                     return True
             
-            # 스펙에 부품번호 패턴이 없으면 일단 유효로 처리
-            if not potential_mpns:
-                return True
+            # 스펙에서 패턴을 찾았지만 어느것도 매칭 안되면 무효
+            if potential_mpns:
+                return False
         
-        # 기본적으로 유효 (검증할 정보가 없는 경우)
-        return True
+        # === 3. MPN도 없고 스펙에서도 패턴 못찾으면 무효 ===
+        # (무작위 API 결과 방지)
+        return False
     
     def resolve(self, mpn: str = "", digi_pn: str = "", mouser_pn: str = "",
                 spec: str = "", package: str = "", category: str = "",

@@ -221,13 +221,17 @@ class PartsLibrary:
             return False
     
     def get_part(self, mpn: str) -> Optional[PartLibraryEntry]:
-        """부품 조회"""
+        """부품 조회 (대소문자 구분 없음)"""
+        if not mpn or not mpn.strip():
+            return None
+        
         try:
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            cursor.execute('SELECT * FROM parts WHERE mpn = ?', (mpn,))
+            # 대소문자 구분 없이 검색 (COLLATE NOCASE)
+            cursor.execute('SELECT * FROM parts WHERE mpn = ? COLLATE NOCASE', (mpn.strip(),))
             row = cursor.fetchone()
             conn.close()
             

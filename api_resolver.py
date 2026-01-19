@@ -26,6 +26,13 @@ from config import (
 # 별칭 사전 파일 경로
 ALIASES_FILE = APP_DIR / "part_aliases.json"
 
+# 부품 라이브러리 모듈 (선택적)
+try:
+    from parts_library import get_parts_library
+    PARTS_LIBRARY_AVAILABLE = True
+except ImportError:
+    PARTS_LIBRARY_AVAILABLE = False
+
 
 class PartInfo:
     """부품 정보 데이터 클래스"""
@@ -1285,7 +1292,6 @@ class PartResolver:
             config = load_config()
         
         self.config = config
-        self.cache = CacheManager()
         self.classifier = MountingClassifier()
         
         # 웹 검색 클라이언트 (기본 활성화)
@@ -1302,9 +1308,18 @@ class PartResolver:
         )
         
         self.api_delay = config.get('api_call_delay', 0.5)
-        self.use_cache = False # config.get('use_cache', True)
-        self.cache_ttl = config.get('cache_ttl_days', 30)
-        self.use_api_fallback = config.get('use_api_fallback', False)  # API 폴백 비활성화 기본값
+        self.use_api_fallback = config.get('use_api_fallback', False)
+        
+        # 부품 라이브러리 (최우선 조회 소스)
+        self.library = None
+        if PARTS_LIBRARY_AVAILABLE:
+            try:
+                self.library = get_parts_library()
+            except Exception as e:
+                print(f"[부품 라이브러리] 초기화 실패: {e}")
+        
+        # 별칭 관리자
+        self.alias_manager = AliasManager()
     
     def _is_result_valid(self, official_name: str, mpn: str, spec: str) -> bool:
         """
@@ -1382,6 +1397,94 @@ class PartResolver:
         # (무작위 API 결과 방지)
         return False
     
+    def _lookup_from_library(self, mpn: str, spec: str, category: str, 
+                             package: str, manufacturer: str) -> Optional[PartInfo]:
+        """
+        부품 라이브러리에서 조회 (최우선 소스)
+        
+        Args:
+            mpn: 제조사 부품번호
+            spec: 스펙
+            category: 카테고리
+            package: 패키지
+            manufacturer: 제조사
+            
+        Returns:
+            PartInfo 또는 None
+        """
+        if not self.library:
+            return None
+        
+        part = None
+        search_terms = []
+        
+        # 1. MPN으로 직접 조회
+        if mpn and mpn.strip():
+            part = self.library.get_part(mpn.strip())
+            search_terms.append(mpn.strip())
+        
+        # 2. 별칭으로 조회 (MPN이 없거나 못찾은 경우)
+        if not part and mpn:
+            canonical, found = self.alias_manager.get_canonical(mpn)
+            if found and canonical != mpn:
+                part = self.library.get_part(canonical)
+                search_terms.append(f"alias:{canonical}")
+        
+        # 3. 스펙에서 MPN 패턴 추출하여 조회
+        if not part and spec and spec.strip():
+            spec_upper = spec.upper().strip()
+            
+            # 괄호 안 내용 추출
+            paren_matches = re.findall(r'\(([^)]+)\)', spec_upper)
+            for paren in paren_matches:
+                part = self.library.get_part(paren)
+                if part:
+                    search_terms.append(f"spec_paren:{paren}")
+                    break
+            
+            # MPN 패턴 추출
+            if not part:
+                potential_mpns = re.findall(r'[A-Z][A-Z0-9\-_]{4,}[A-Z0-9]', spec_upper)
+                for potential in potential_mpns:
+                    part = self.library.get_part(potential)
+                    if part:
+                        search_terms.append(f"spec_pattern:{potential}")
+                        break
+        
+        # 4. 라이브러리에서 검색 (유사 매칭)
+        if not part and (mpn or spec):
+            query = mpn or spec
+            results = self.library.search_parts(query[:50], limit=3)  # 최대 50자
+            if results:
+                # 첫 번째 결과 사용
+                part = results[0]
+                search_terms.append(f"search:{query[:20]}")
+        
+        if not part:
+            return None
+        
+        # PartInfo 객체 생성
+        info = PartInfo()
+        info.official_name = part.mpn
+        info.manufacturer = part.manufacturer or manufacturer
+        info.description = part.description or ""
+        info.package = part.package or package
+        info.mounting_type = part.mounting_type if part.mounting_type else ""
+        info.source = "library"
+        info.datasheet_url = part.datasheet_url or ""
+        
+        # mounting_type이 없으면 classifier로 분류
+        if not info.mounting_type or info.mounting_type == "확인필요":
+            mounting_type, reason = self.classifier.classify(
+                spec, info.package, "", mpn, category, ""
+            )
+            info.mounting_type = mounting_type
+            info.classification_reason = f"Library({', '.join(search_terms)}) + {reason}"
+        else:
+            info.classification_reason = f"Library({', '.join(search_terms)})"
+        
+        return info
+    
     def resolve(self, mpn: str = "", digi_pn: str = "", mouser_pn: str = "",
                 spec: str = "", package: str = "", category: str = "",
                 refdes: str = "", manufacturer: str = "") -> PartInfo:
@@ -1401,21 +1504,12 @@ class PartResolver:
         Returns:
             PartInfo 객체
         """
-        # 캐시 확인
-        cache_key = self.cache.make_key(mpn, digi_pn, mouser_pn)
-        if cache_key and self.use_cache:
-            cached = self.cache.get(cache_key, self.cache_ttl)
-            if cached:
-                cached.source = "cache"
-                # 캐시에서도 mounting_type 항상 재분류 (DB 로직 등 최신 로직 반영을 위해)
-                # 기존: if not cached.mounting_type or cached.mounting_type == "미확정":
-                mounting_type, classification_reason = self.classifier.classify(
-                    spec, cached.package or package, cached.mounting, mpn, category, refdes
-                )
-                cached.mounting_type = mounting_type
-                cached.classification_reason = classification_reason
-                
-                return cached
+        # === 0단계: 부품 라이브러리 조회 (최우선) ===
+        if self.library:
+            library_result = self._lookup_from_library(mpn, spec, category, package, manufacturer)
+            if library_result:
+                # 라이브러리에서 찾으면 바로 반환
+                return library_result
         
         info = PartInfo()
         
@@ -1503,10 +1597,6 @@ class PartResolver:
             )
             info.mounting_type = mounting_type
             info.classification_reason = classification_reason
-        
-        # 캐시 저장
-        if cache_key and self.use_cache:
-            self.cache.set(cache_key, info)
         
         return info
     

@@ -841,9 +841,9 @@ class MainApplication(tk.Tk):
         self.notebook = ttk.Notebook(main_frame)
         self.notebook.pack(fill='both', expand=True, pady=(0, 10))
         
-        # 탭 1: 미리보기 & 매핑
+        # 탭 1: BOM 입력 (미리보기 & 매핑)
         preview_frame = ttk.Frame(self.notebook, padding=10)
-        self.notebook.add(preview_frame, text="데이터 & 매핑")
+        self.notebook.add(preview_frame, text="BOM 입력")
         
         # 미리보기 테이블
         preview_label_frame = ttk.LabelFrame(preview_frame, text="2. 데이터 미리보기 (상위 10행)", padding=5)
@@ -856,9 +856,9 @@ class MainApplication(tk.Tk):
         self.mapping_frame = ColumnMappingFrame(preview_frame)
         self.mapping_frame.pack(fill='x')
         
-        # 탭 2: 결과
+        # 탭 2: 처리 결과
         result_frame = ttk.Frame(self.notebook, padding=10)
-        self.notebook.add(result_frame, text="결과")
+        self.notebook.add(result_frame, text="처리 결과")
         
         result_label_frame = ttk.LabelFrame(result_frame, text="처리 결과", padding=5)
         result_label_frame.pack(fill='both', expand=True)
@@ -870,28 +870,19 @@ class MainApplication(tk.Tk):
         self.stats_var = tk.StringVar(value="")
         ttk.Label(result_label_frame, textvariable=self.stats_var, font=('맑은 고딕', 10, 'bold')).pack(pady=5)
         
-        # 탭 3: NPI / P&P (NPI 모듈이 있는 경우만)
-        if NPI_MODULES_AVAILABLE:
-            self.npi_frame = NPIFrame(self.notebook, self._get_result_df)
-            self.notebook.add(self.npi_frame, text="NPI / P&P")
-        
-        # 탭 4: 별칭 관리
-        self.alias_frame = AliasManagerFrame(self.notebook)
-        self.notebook.add(self.alias_frame, text="별칭 관리")
-        
-        # 탭 5: 설정
-        self.settings_frame = SettingsFrame(self.notebook)
-        self.notebook.add(self.settings_frame, text="설정")
-        
-        # 탭 6: 부품 라이브러리 (PARTS_LIBRARY 모듈이 있는 경우만)
-        if PARTS_LIBRARY_AVAILABLE:
-            self.library_frame = PartsLibraryFrame(self.notebook, self._get_result_df)
-            self.notebook.add(self.library_frame, text="부품 라이브러리")
-        
-        # 탭 7: NPI Pro (옵션)
+        # 탭 3: SMT 장착 (NPI Pro - 옵션)
         if NPI_PRO_AVAILABLE:
             self.npi_pro_frame = NPIProFrame(self.notebook, self._get_result_df)
-            self.notebook.add(self.npi_pro_frame, text="🚀 NPI Pro")
+            self.notebook.add(self.npi_pro_frame, text="SMT 장착")
+        
+        # 탭 4: 부품 DB (부품 라이브러리 + 별칭 관리 통합)
+        if PARTS_LIBRARY_AVAILABLE:
+            self.library_frame = PartsLibraryFrame(self.notebook, self._get_result_df)
+            self.notebook.add(self.library_frame, text="부품 DB")
+        
+        # 탭 5: 설정 (항상 마지막)
+        self.settings_frame = SettingsFrame(self.notebook)
+        self.notebook.add(self.settings_frame, text="설정")
     
     def _browse_file(self):
         """파일 선택 다이얼로그"""

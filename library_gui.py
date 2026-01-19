@@ -13,6 +13,7 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 from typing import Optional, Dict, Any, List, Callable
 import pandas as pd
 import threading
+import json
 
 try:
     from parts_library import (
@@ -22,6 +23,12 @@ try:
     PARTS_LIBRARY_AVAILABLE = True
 except ImportError:
     PARTS_LIBRARY_AVAILABLE = False
+
+try:
+    from bom_parser import AliasManager
+    ALIAS_MANAGER_AVAILABLE = True
+except ImportError:
+    ALIAS_MANAGER_AVAILABLE = False
 
 
 class PartsLibraryFrame(ttk.Frame):
@@ -55,6 +62,10 @@ class PartsLibraryFrame(ttk.Frame):
         
         # 탭 3: 위험도 분석
         self._create_risk_tab()
+        
+        # 탭 4: 부품 별칭
+        if ALIAS_MANAGER_AVAILABLE:
+            self._create_alias_tab()
     
     def _create_parts_tab(self):
         """부품 라이브러리 탭"""
@@ -81,12 +92,17 @@ class PartsLibraryFrame(ttk.Frame):
         table_frame = ttk.Frame(frame)
         table_frame.pack(fill='both', expand=True)
         
-        columns = ('MPN', '제조사', '카테고리', '패키지', '상태', '리드타임')
+        columns = ('MPN', '제조사', '카테고리', '패키지', '별칭', '상태', '리드타임')
         self.parts_tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
         
         for col in columns:
             self.parts_tree.heading(col, text=col)
-            width = 150 if col in ['MPN', '제조사'] else 100
+            if col in ['MPN', '제조사']:
+                width = 150
+            elif col == '별칭':
+                width = 200
+            else:
+                width = 100
             self.parts_tree.column(col, width=width)
         
         vsb = ttk.Scrollbar(table_frame, orient='vertical', command=self.parts_tree.yview)
@@ -251,12 +267,32 @@ class PartsLibraryFrame(ttk.Frame):
         """부품 목록 표시"""
         self.parts_tree.delete(*self.parts_tree.get_children())
         
+        # 별칭 데이터 로드
+        alias_data = {}
+        if ALIAS_MANAGER_AVAILABLE:
+            try:
+                alias_mgr = AliasManager()
+                alias_data = alias_mgr.get_all_aliases()
+            except:
+                pass
+        
         for part in parts:
+            # 별칭 가져오기
+            aliases_str = ""
+            if part.mpn in alias_data:
+                info = alias_data[part.mpn]
+                variants = info.get('variants', [])
+                if variants:
+                    aliases_str = ', '.join(variants[:3])
+                    if len(variants) > 3:
+                        aliases_str += f' (+{len(variants) - 3})'
+            
             self.parts_tree.insert('', 'end', values=(
                 part.mpn,
                 part.manufacturer,
                 part.category,
                 part.package,
+                aliases_str,
                 part.lifecycle,
                 f"{part.lead_time_days}일" if part.lead_time_days else '-'
             ))
@@ -545,6 +581,213 @@ class PartsLibraryFrame(ttk.Frame):
         self.risk_detail_text.delete('1.0', 'end')
         self.risk_detail_text.insert('end', f"MPN: {mpn}\n\n")
         self.risk_detail_text.insert('end', "상세 분석 결과는 DB에 저장됩니다.")
+    
+    # ===== 부품 별칭 관리 =====
+    
+    def _create_alias_tab(self):
+        """부품 별칭 탭"""
+        frame = ttk.Frame(self.sub_notebook, padding=10)
+        self.sub_notebook.add(frame, text="부품 별칭")
+        
+        self.alias_manager = AliasManager()
+        
+        # 상단: 검색 및 통계
+        top_frame = ttk.Frame(frame)
+        top_frame.pack(fill='x', pady=(0, 10))
+        
+        # 검색
+        search_frame = ttk.LabelFrame(top_frame, text="검색", padding=5)
+        search_frame.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        
+        self.alias_search_var = tk.StringVar()
+        self.alias_search_var.trace('w', lambda *args: self._on_alias_search())
+        
+        search_entry = ttk.Entry(search_frame, textvariable=self.alias_search_var, width=40)
+        search_entry.pack(side='left', fill='x', expand=True, padx=(0, 5))
+        
+        ttk.Button(search_frame, text="초기화", command=self._clear_alias_search, width=8).pack(side='left')
+        
+        # 통계
+        stats_frame = ttk.LabelFrame(top_frame, text="통계", padding=5)
+        stats_frame.pack(side='right')
+        
+        self.alias_stats_var = tk.StringVar(value="항목: 0 | 변형: 0")
+        ttk.Label(stats_frame, textvariable=self.alias_stats_var).pack()
+        
+        # 중앙: 별칭 목록
+        list_frame = ttk.LabelFrame(frame, text="별칭 목록", padding=5)
+        list_frame.pack(fill='both', expand=True, pady=(0, 10))
+        
+        # 트리뷰
+        columns = ('official_name', 'variants', 'category', 'package')
+        self.alias_tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=12)
+        
+        self.alias_tree.heading('official_name', text='공식 부품명')
+        self.alias_tree.heading('variants', text='변형 (별칭)')
+        self.alias_tree.heading('category', text='카테고리')
+        self.alias_tree.heading('package', text='패키지')
+        
+        self.alias_tree.column('official_name', width=200, minwidth=100)
+        self.alias_tree.column('variants', width=250, minwidth=100)
+        self.alias_tree.column('category', width=100, minwidth=60)
+        self.alias_tree.column('package', width=80, minwidth=50)
+        
+        # 스크롤바
+        vsb = ttk.Scrollbar(list_frame, orient="vertical", command=self.alias_tree.yview)
+        hsb = ttk.Scrollbar(list_frame, orient="horizontal", command=self.alias_tree.xview)
+        self.alias_tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        self.alias_tree.grid(row=0, column=0, sticky='nsew')
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+        
+        list_frame.grid_rowconfigure(0, weight=1)
+        list_frame.grid_columnconfigure(0, weight=1)
+        
+        # 더블클릭으로 편집
+        self.alias_tree.bind('<Double-1>', self._on_alias_double_click)
+        
+        # 하단: 버튼
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(fill='x')
+        
+        # 왼쪽 버튼 (추가/편집/삭제)
+        left_btns = ttk.Frame(btn_frame)
+        left_btns.pack(side='left')
+        
+        ttk.Button(left_btns, text="추가", command=self._add_alias, width=10).pack(side='left', padx=2)
+        ttk.Button(left_btns, text="편집", command=self._edit_alias, width=10).pack(side='left', padx=2)
+        ttk.Button(left_btns, text="삭제", command=self._delete_alias, width=10).pack(side='left', padx=2)
+        
+        # 오른쪽 버튼 (가져오기/내보내기)
+        right_btns = ttk.Frame(btn_frame)
+        right_btns.pack(side='right')
+        
+        ttk.Button(right_btns, text="새로고침", command=self._refresh_alias_list, width=10).pack(side='left', padx=2)
+        ttk.Button(right_btns, text="가져오기", command=self._import_aliases, width=10).pack(side='left', padx=2)
+        ttk.Button(right_btns, text="내보내기", command=self._export_aliases, width=10).pack(side='left', padx=2)
+        
+        # 초기 로드
+        self._refresh_alias_list()
+    
+    def _refresh_alias_list(self, filter_query: str = ""):
+        """별칭 목록 새로고침"""
+        self.alias_tree.delete(*self.alias_tree.get_children())
+        
+        self.alias_manager.load()
+        
+        if filter_query:
+            aliases = self.alias_manager.search_aliases(filter_query, limit=200)
+            items = [(a['canonical'], a) for a in aliases]
+        else:
+            items = list(self.alias_manager.get_all_aliases().items())
+        
+        for canonical, info in items:
+            if isinstance(info, dict):
+                official_name = info.get('official_name', canonical)
+                variants = info.get('variants', [])
+                category = info.get('category', '')
+                package = info.get('package', '')
+            else:
+                official_name = canonical
+                variants = []
+                category = ''
+                package = ''
+            
+            variants_str = ', '.join(variants[:3])
+            if len(variants) > 3:
+                variants_str += f' (+{len(variants) - 3}개)'
+            
+            self.alias_tree.insert('', 'end', iid=canonical, values=(
+                official_name, variants_str, category, package
+            ))
+        
+        stats = self.alias_manager.get_stats()
+        self.alias_stats_var.set(f"항목: {stats['total_entries']} | 변형: {stats['total_variants']}")
+    
+    def _on_alias_search(self):
+        """별칭 검색"""
+        query = self.alias_search_var.get().strip()
+        self._refresh_alias_list(query)
+    
+    def _clear_alias_search(self):
+        """검색 초기화"""
+        self.alias_search_var.set("")
+        self._refresh_alias_list()
+    
+    def _on_alias_double_click(self, event):
+        """더블클릭으로 편집"""
+        self._edit_alias()
+    
+    def _add_alias(self):
+        """별칭 추가"""
+        AliasEditDialog(self, "별칭 추가", self.alias_manager, on_save=self._refresh_alias_list)
+    
+    def _edit_alias(self):
+        """별칭 편집"""
+        selected = self.alias_tree.selection()
+        if not selected:
+            messagebox.showinfo("알림", "편집할 항목을 선택하세요.")
+            return
+        
+        canonical = selected[0]
+        aliases = self.alias_manager.get_all_aliases()
+        info = aliases.get(canonical, {})
+        
+        AliasEditDialog(self, "별칭 편집", self.alias_manager, canonical, info, on_save=self._refresh_alias_list)
+    
+    def _delete_alias(self):
+        """별칭 삭제"""
+        selected = self.alias_tree.selection()
+        if not selected:
+            messagebox.showinfo("알림", "삭제할 항목을 선택하세요.")
+            return
+        
+        canonical = selected[0]
+        
+        if messagebox.askyesno("확인", f"'{canonical}' 항목을 삭제하시겠습니까?"):
+            if self.alias_manager.remove_alias(canonical):
+                self._refresh_alias_list()
+                messagebox.showinfo("완료", "항목이 삭제되었습니다.")
+            else:
+                messagebox.showwarning("오류", "삭제에 실패했습니다.")
+    
+    def _import_aliases(self):
+        """별칭 가져오기"""
+        file_path = filedialog.askopenfilename(
+            title="별칭 파일 가져오기",
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                if self.alias_manager.import_data(data, merge=True):
+                    self._refresh_alias_list()
+                    messagebox.showinfo("완료", "별칭을 가져왔습니다.")
+                else:
+                    messagebox.showwarning("오류", "가져오기에 실패했습니다.")
+            except Exception as e:
+                messagebox.showerror("오류", f"파일 읽기 실패: {e}")
+    
+    def _export_aliases(self):
+        """별칭 내보내기"""
+        file_path = filedialog.asksaveasfilename(
+            title="별칭 파일 내보내기",
+            defaultextension=".json",
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
+        )
+        
+        if file_path:
+            try:
+                data = self.alias_manager.export_data()
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                messagebox.showinfo("완료", f"별칭을 내보냈습니다:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("오류", f"파일 저장 실패: {e}")
 
 
 class PartEditDialog(tk.Toplevel):
@@ -558,8 +801,14 @@ class PartEditDialog(tk.Toplevel):
         self.on_save = on_save
         self.is_edit = part is not None
         
+        # AliasManager 초기화
+        if ALIAS_MANAGER_AVAILABLE:
+            self.alias_manager = AliasManager()
+        else:
+            self.alias_manager = None
+        
         self.title("부품 편집" if self.is_edit else "부품 추가")
-        self.geometry("450x500")
+        self.geometry("500x600")
         self.transient(parent)
         self.grab_set()
         
@@ -603,9 +852,20 @@ class PartEditDialog(tk.Toplevel):
             
             entry.grid(row=i, column=1, sticky='w', pady=3)
         
+        # 별칭 필드 (여러 줄 입력)
+        alias_row = len(fields)
+        ttk.Label(frame, text="별칭 (한 줄에 하나씩):").grid(row=alias_row, column=0, sticky='ne', pady=3)
+        
+        alias_frame = ttk.Frame(frame)
+        alias_frame.grid(row=alias_row, column=1, sticky='w', pady=3)
+        
+        self.aliases_text = scrolledtext.ScrolledText(alias_frame, width=35, height=5)
+        self.aliases_text.pack(side='left')
+        ttk.Label(alias_frame, text="여러 개 가능", foreground='gray').pack(side='left', padx=5)
+        
         # 버튼
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=len(fields), column=0, columnspan=2, pady=20)
+        btn_frame.grid(row=alias_row + 1, column=0, columnspan=2, pady=20)
         
         ttk.Button(btn_frame, text="저장", command=self._save).pack(side='left', padx=10)
         ttk.Button(btn_frame, text="취소", command=self.destroy).pack(side='left')
@@ -623,6 +883,15 @@ class PartEditDialog(tk.Toplevel):
         self.vars['unit_price_krw'].set(str(self.part.unit_price_krw))
         self.vars['alternates'].set(', '.join(self.part.alternates))
         self.vars['datasheet_url'].set(self.part.datasheet_url)
+        
+        # 별칭 로드
+        if self.alias_manager:
+            aliases = self.alias_manager.get_all_aliases()
+            mpn = self.part.mpn
+            if mpn in aliases:
+                info = aliases[mpn]
+                variants = info.get('variants', [])
+                self.aliases_text.insert('1.0', '\n'.join(variants))
     
     def _save(self):
         """저장"""
@@ -660,6 +929,32 @@ class PartEditDialog(tk.Toplevel):
         )
         
         if self.library.add_part(entry):
+            # 별칭 저장
+            if self.alias_manager:
+                aliases_text = self.aliases_text.get('1.0', 'end').strip()
+                aliases = [a.strip() for a in aliases_text.split('\n') if a.strip()]
+                
+                # 기존 별칭 삭제 후 새로 추가
+                self.alias_manager.remove_alias(mpn)
+                
+                if aliases:
+                    # 먼저 공식 부품명 등록
+                    self.alias_manager.add_alias(
+                        canonical_mpn=mpn,
+                        variant="",
+                        category=entry.category,
+                        package=entry.package,
+                        auto_generated=False
+                    )
+                    # 변형(별칭) 추가
+                    for alias in aliases:
+                        self.alias_manager.add_alias(
+                            canonical_mpn=mpn,
+                            variant=alias,
+                            category=entry.category,
+                            package=entry.package
+                        )
+            
             if self.on_save:
                 self.on_save()
             self.destroy()
@@ -883,3 +1178,119 @@ def add_library_tab(notebook: ttk.Notebook, get_bom_data_callback=None) -> None:
     
     library_frame = PartsLibraryFrame(notebook, get_bom_data_callback)
     notebook.add(library_frame, text="부품 라이브러리")
+
+
+class AliasEditDialog(tk.Toplevel):
+    """별칭 편집 다이얼로그"""
+    
+    def __init__(self, parent, title: str, alias_manager,
+                 canonical: str = "", info: dict = None, on_save=None):
+        super().__init__(parent)
+        
+        self.alias_manager = alias_manager
+        self.canonical = canonical
+        self.info = info or {}
+        self.is_edit = bool(canonical)
+        self.on_save = on_save
+        
+        self.title(title)
+        self.geometry("500x400")
+        self.resizable(True, True)
+        self.transient(parent)
+        self.grab_set()
+        
+        self._create_widgets()
+        self._load_data()
+    
+    def _create_widgets(self):
+        main_frame = ttk.Frame(self, padding=15)
+        main_frame.pack(fill='both', expand=True)
+        
+        # 공식 부품명
+        ttk.Label(main_frame, text="공식 부품명 (MPN):").grid(row=0, column=0, sticky='e', pady=5)
+        self.official_name_var = tk.StringVar()
+        self.official_name_entry = ttk.Entry(main_frame, textvariable=self.official_name_var, width=40)
+        self.official_name_entry.grid(row=0, column=1, sticky='w', pady=5)
+        
+        # 카테고리
+        ttk.Label(main_frame, text="카테고리:").grid(row=1, column=0, sticky='e', pady=5)
+        self.category_var = tk.StringVar()
+        self.category_entry = ttk.Entry(main_frame, textvariable=self.category_var, width=40)
+        self.category_entry.grid(row=1, column=1, sticky='w', pady=5)
+        
+        # 패키지
+        ttk.Label(main_frame, text="패키지:").grid(row=2, column=0, sticky='e', pady=5)
+        self.package_var = tk.StringVar()
+        self.package_entry = ttk.Entry(main_frame, textvariable=self.package_var, width=40)
+        self.package_entry.grid(row=2, column=1, sticky='w', pady=5)
+        
+        # 변형 (별칭) 목록
+        ttk.Label(main_frame, text="변형 (별칭):").grid(row=3, column=0, sticky='ne', pady=5)
+        
+        variants_frame = ttk.Frame(main_frame)
+        variants_frame.grid(row=3, column=1, sticky='w', pady=5)
+        
+        self.variants_text = scrolledtext.ScrolledText(variants_frame, width=35, height=8)
+        self.variants_text.pack(side='left')
+        
+        ttk.Label(variants_frame, text="(한 줄에 하나씩)", foreground='gray').pack(side='left', padx=5)
+        
+        # 버튼
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.grid(row=4, column=0, columnspan=2, pady=20)
+        
+        ttk.Button(btn_frame, text="저장", command=self._save, width=12).pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="취소", command=self.destroy, width=12).pack(side='left', padx=5)
+    
+    def _load_data(self):
+        """기존 데이터 로드"""
+        if self.is_edit:
+            self.official_name_var.set(self.info.get('official_name', ''))
+            self.category_var.set(self.info.get('category', ''))
+            self.package_var.set(self.info.get('package', ''))
+            
+            variants = self.info.get('variants', [])
+            self.variants_text.insert('1.0', '\n'.join(variants))
+    
+    def _save(self):
+        """저장"""
+        official_name = self.official_name_var.get().strip()
+        
+        if not official_name:
+            messagebox.showwarning("오류", "공식 부품명을 입력하세요.")
+            return
+        
+        category = self.category_var.get().strip()
+        package = self.package_var.get().strip()
+        
+        # 변형 목록 파싱
+        variants_text = self.variants_text.get('1.0', 'end').strip()
+        variants = [v.strip() for v in variants_text.split('\n') if v.strip()]
+        
+        # 저장
+        if self.is_edit:
+            # 기존 항목 삭제 후 다시 추가
+            self.alias_manager.remove_alias(self.canonical)
+        
+        # 새 항목 추가
+        self.alias_manager.add_alias(
+            canonical_mpn=official_name,
+            variant="",
+            category=category,
+            package=package,
+            auto_generated=False
+        )
+        
+        # 변형 추가
+        for variant in variants:
+            self.alias_manager.add_alias(
+                canonical_mpn=official_name,
+                variant=variant,
+                category=category,
+                package=package
+            )
+        
+        if self.on_save:
+            self.on_save()
+        
+        self.destroy()

@@ -269,7 +269,10 @@ class BOMVersionFrame(ttk.Frame):
             else:
                 messagebox.showwarning("오류", "프로젝트 생성에 실패했습니다.")
         
-        ttk.Button(dialog, text="생성", command=create).pack(pady=10)
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="생성", command=create, width=10).pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="취소", command=dialog.destroy, width=10).pack(side='left', padx=5)
     
     def _delete_project(self):
         """프로젝트 삭제"""
@@ -336,7 +339,10 @@ class BOMVersionFrame(ttk.Frame):
             else:
                 messagebox.showwarning("오류", "버전 저장에 실패했습니다.")
         
-        ttk.Button(dialog, text="저장", command=save).pack(pady=10)
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="저장", command=save, width=10).pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="취소", command=dialog.destroy, width=10).pack(side='left', padx=5)
     
     def _add_from_file(self):
         """파일에서 버전 추가"""

@@ -42,26 +42,34 @@ COLUMN_MAP_CANDIDATES = {
     '품목': [
         '품목', '품명', '품목명', 'item', 'type', 'category', '부품종류', 'part type', 'component type', 
         'component', 'part name', 'parts', '부품',
-        'component name', 'comp', 'comp type', '부품명'
+        'component name', 'comp', 'comp type', '부품명',
+        'p_code', 'name',  # 이미지 3번 포맷 추가
     ],
     '스펙': [
         '스펙', '규격', 'spec', 'specification', 'desc', 'description', 'value', '값', 
-        '전기적특성', 'electrical', 'parameters', 'details', 'remark', 'remarks', 'note'
+        '전기적특성', 'electrical', 'parameters', 'details', 'remark', 'remarks', 'note',
+        'name',  # 이미지 3번 포맷 - 부품명에 스펙 포함
     ],
-    '수량': ['수량', '소요량', '소요', 'qty', 'quantity', 'q\'ty', 'count', 'ea', 'pcs', '개수', 'amount'],
-    '위치': ['위치', 'refdes', 'ref', 'reference', 'location', 'pos', 'R-No', 'position', 'designator', 'ref designator', 'ref des'],
+    '수량': ['수량', '소요량', '소요', 'qty', 'quantity', 'q\'ty', 'count', 'ea', 'pcs', '개수', 'amount',
+             'b_qty'],  # 이미지 3번 포맷 추가
+    '위치': ['위치', 'refdes', 'ref', 'reference', 'location', 'pos', 'R-No', 'position', 'designator', 'ref designator', 'ref des',
+             'b_code', 'loc'],  # 이미지 3번 포맷 추가
     'mpn': [
         'mpn', 'manufacturer part number', '제조사부품번호', 
         'mfr_pn', 'mfr pn', 'mfg pn', 'mfg p/n', 
-        'part number', 'p/n', 'pn', 'part no', 'part#', '부품번호'
+        'part number', 'p/n', 'pn', 'part no', 'part#', '부품번호',
+        'p_code',  # 이미지 3번 포맷 추가
     ],
     'manufacturer': [
         'manufacturer', 'manufacture', 'mfr', 'mfg', '제조사', 
-        'brand', 'make', 'maker'
+        'brand', 'make', 'maker',
+        'supplyer', 'supplier', '공급사',  # 이미지 3번 포맷 추가
     ],
     'digi_pn': ['digikey_pn', 'digikey part number', 'dk_pn', 'digi-key', 'digikey', 'dk pn', 'dk p/n'],
     'mouser_pn': ['mouser_pn', 'mouser part number', 'ms_pn', 'mouser', 'mouser p/n'],
     'package': ['package', 'pkg', '패키지', 'footprint', 'case', 'package/case', 'size'],
+    # 이미지 3번 포맷 추가 컬럼
+    'gubun': ['gubun', '구분', 'mounting', 'mounting type', '장착방식'],  # SMD/DIP 구분
 }
 
 # ============== 부품 종류 키워드 (규격 컬럼 내용 탐지용) ==============

@@ -870,7 +870,12 @@ class MainApplication(tk.Tk):
         self.stats_var = tk.StringVar(value="")
         ttk.Label(result_label_frame, textvariable=self.stats_var, font=('맑은 고딕', 10, 'bold')).pack(pady=5)
         
-        # 탭 3: SMT 장착 (NPI Pro - 옵션)
+        # 탭 3: NPI / P&P (Centroid 매칭 및 P&P 생성)
+        if NPI_MODULES_AVAILABLE:
+            self.npi_frame = NPIFrame(self.notebook, self._get_result_df)
+            self.notebook.add(self.npi_frame, text="NPI / P&P")
+        
+        # 탭 4: SMT 장착 (NPI Pro - 옵션)
         if NPI_PRO_AVAILABLE:
             self.npi_pro_frame = NPIProFrame(self.notebook, self._get_result_df)
             self.notebook.add(self.npi_pro_frame, text="SMT 장착")

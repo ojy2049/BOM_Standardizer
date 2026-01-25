@@ -152,7 +152,12 @@ class SamsungSMGenerator:
             refdes = refdes_list[0] if refdes_list else refdes_raw
             
             rotation = float(row.get(mapping['rotation'], 0)) if not pd.isna(row.get(mapping['rotation'])) else 0
-            layer = str(row.get(mapping['layer'], 'Top'))
+            # Layer 값 처리: None, NaN, 빈 값인 경우 'Top'으로 기본 설정
+            layer_raw = row.get(mapping['layer'])
+            if pd.isna(layer_raw) or layer_raw is None or str(layer_raw).lower() in ['nan', 'none', '']:
+                layer = 'Top'
+            else:
+                layer = str(layer_raw)
             footprint = str(row.get(mapping['footprint'], ''))
             value = str(row.get(mapping['value'], ''))
             mpn = str(row.get(mapping['mpn'], ''))
@@ -303,6 +308,100 @@ class SamsungSMGenerator:
         except Exception as e:
             return False, f"SSA 생성 실패: {str(e)}"
     
+    def generate_mounter_format(self, output_path: str, layer: str = "Top", 
+                                 output_type: str = "csv") -> Tuple[bool, str]:
+        """
+        마운터 프로그램 포맷 파일 생성 (이미지 1번 포맷)
+        
+        출력 형식:
+        RefDes | X | Y | Rotation | Layer | Part
+        Part = Value-Package (예: 1K-F-1608)
+        
+        Args:
+            output_path: 출력 파일 경로
+            layer: 레이어 (Top/Bottom)
+            output_type: 출력 타입 ('csv', 'txt')
+            
+        Returns:
+            (성공여부, 메시지)
+        """
+        try:
+            layer_data = [d for d in self.placement_data if d.layer.lower() == layer.lower()]
+            
+            if not layer_data:
+                return False, f"{layer} 레이어에 배치할 부품이 없습니다."
+            
+            def format_part(value: str, footprint: str) -> str:
+                """Part 컬럼 포맷: Value-F-Package"""
+                value_clean = value.strip() if value else ""
+                footprint_clean = footprint.strip() if footprint else ""
+                
+                # 패키지에서 사이즈 코드 추출 (예: C1005 -> 1005, 0805 -> 0805)
+                import re
+                size_match = re.search(r'(\d{4})', footprint_clean)
+                size_code = size_match.group(1) if size_match else footprint_clean
+                
+                if value_clean and size_code:
+                    return f"{value_clean}-F-{size_code}"
+                elif value_clean:
+                    return value_clean
+                elif size_code:
+                    return size_code
+                return ""
+            
+            if output_type.lower() == 'txt':
+                return self._generate_mounter_txt(output_path, layer_data, format_part)
+            else:
+                return self._generate_mounter_csv(output_path, layer_data, format_part)
+                
+        except Exception as e:
+            return False, f"마운터 포맷 생성 실패: {str(e)}"
+    
+    def _generate_mounter_txt(self, output_path: str, layer_data: list, 
+                               format_part) -> Tuple[bool, str]:
+        """TXT 형식 마운터 파일 생성"""
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                # 헤더 (고정폭 포맷)
+                f.write(f"{'RefDes':<10}{'X':>12}{'Y':>12}{'Rotation':>10}{'Layer':>8}{'Part':<20}\n")
+                f.write("-" * 72 + "\n")
+                
+                for d in layer_data:
+                    part = format_part(d.value, d.footprint)
+                    line = f"{d.refdes:<10}{d.x:>12.4f}{d.y:>12.4f}{d.rotation:>10.0f}{d.layer:>8}{part:<20}\n"
+                    f.write(line)
+            
+            return True, f"{len(layer_data)}개 부품 TXT 파일 생성 완료: {output_path}"
+            
+        except Exception as e:
+            return False, f"TXT 생성 실패: {str(e)}"
+    
+    def _generate_mounter_csv(self, output_path: str, layer_data: list,
+                               format_part) -> Tuple[bool, str]:
+        """CSV 형식 마운터 파일 생성"""
+        try:
+            with open(output_path, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                
+                # 헤더
+                writer.writerow(['RefDes', 'X', 'Y', 'Rotation', 'Layer', 'Part'])
+                
+                for d in layer_data:
+                    part = format_part(d.value, d.footprint)
+                    writer.writerow([
+                        d.refdes,
+                        f"{d.x:.4f}",
+                        f"{d.y:.4f}",
+                        f"{d.rotation:.0f}",
+                        d.layer.upper(),
+                        part,
+                    ])
+            
+            return True, f"{len(layer_data)}개 부품 CSV 파일 생성 완료: {output_path}"
+            
+        except Exception as e:
+            return False, f"CSV 생성 실패: {str(e)}"
+    
     def generate_feeder_list(self, output_path: str, layer: str = "Top") -> Tuple[bool, str]:
         """
         피더 리스트 생성 (부품별 피더 배치 계획)
@@ -437,7 +536,8 @@ class GenericPnPGenerator:
 
 def generate_pnp_files(bom_df: pd.DataFrame, output_dir: str, 
                        board_name: str = "PCB",
-                       machine_type: str = "SM471") -> Tuple[bool, str, List[str]]:
+                       machine_type: str = "SM471",
+                       output_formats: List[str] = None) -> Tuple[bool, str, List[str]]:
     """
     BOM+좌표 데이터에서 P&P 파일들 일괄 생성
     
@@ -446,12 +546,21 @@ def generate_pnp_files(bom_df: pd.DataFrame, output_dir: str,
         output_dir: 출력 디렉토리
         board_name: 기판 이름
         machine_type: 장비 타입
+        output_formats: 출력 포맷 리스트 ['ssa', 'csv', 'txt', 'mounter']
+            - ssa: Samsung Standard ASCII
+            - csv: Samsung SM 전용 CSV (Nozzle, Feeder 포함)
+            - txt: 마운터 포맷 TXT (이미지 1번 형식)
+            - mounter: 마운터 포맷 CSV (이미지 1번 형식)
         
     Returns:
         (성공여부, 메시지, 생성된 파일 리스트)
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 기본 출력 포맷
+    if output_formats is None:
+        output_formats = ['ssa', 'csv', 'txt']
     
     generated_files = []
     
@@ -471,16 +580,32 @@ def generate_pnp_files(bom_df: pd.DataFrame, output_dir: str,
         top_data = [d for d in generator.placement_data if d.layer == 'Top']
         if top_data:
             # SSA 파일
-            ssa_path = output_dir / f"{base_name}_Top.ssa"
-            success, msg = generator.generate_ssa(str(ssa_path), "Top")
-            if success:
-                generated_files.append(str(ssa_path))
+            if 'ssa' in output_formats:
+                ssa_path = output_dir / f"{base_name}_Top.ssa"
+                success, msg = generator.generate_ssa(str(ssa_path), "Top")
+                if success:
+                    generated_files.append(str(ssa_path))
             
-            # CSV 파일
-            csv_path = output_dir / f"{base_name}_Top.csv"
-            success, msg = generator.generate_csv(str(csv_path), "Top")
-            if success:
-                generated_files.append(str(csv_path))
+            # Samsung CSV 형식 (Nozzle, Feeder 포함)
+            if 'csv' in output_formats:
+                csv_path = output_dir / f"{base_name}_Top.csv"
+                success, msg = generator.generate_csv(str(csv_path), "Top")
+                if success:
+                    generated_files.append(str(csv_path))
+            
+            # 마운터 포맷 TXT (이미지 1번 형식)
+            if 'txt' in output_formats:
+                txt_path = output_dir / f"{base_name}_Top_Mounter.txt"
+                success, msg = generator.generate_mounter_format(str(txt_path), "Top", "txt")
+                if success:
+                    generated_files.append(str(txt_path))
+            
+            # 마운터 포맷 CSV (이미지 1번 형식)
+            if 'mounter' in output_formats:
+                mounter_path = output_dir / f"{base_name}_Top_Mounter.csv"
+                success, msg = generator.generate_mounter_format(str(mounter_path), "Top", "csv")
+                if success:
+                    generated_files.append(str(mounter_path))
             
             # 피더 리스트
             feeder_path = output_dir / f"{base_name}_Top_Feeder.csv"
@@ -491,15 +616,29 @@ def generate_pnp_files(bom_df: pd.DataFrame, output_dir: str,
         # Bottom 레이어 파일 생성
         bottom_data = [d for d in generator.placement_data if d.layer == 'Bottom']
         if bottom_data:
-            ssa_path = output_dir / f"{base_name}_Bottom.ssa"
-            success, msg = generator.generate_ssa(str(ssa_path), "Bottom")
-            if success:
-                generated_files.append(str(ssa_path))
+            if 'ssa' in output_formats:
+                ssa_path = output_dir / f"{base_name}_Bottom.ssa"
+                success, msg = generator.generate_ssa(str(ssa_path), "Bottom")
+                if success:
+                    generated_files.append(str(ssa_path))
             
-            csv_path = output_dir / f"{base_name}_Bottom.csv"
-            success, msg = generator.generate_csv(str(csv_path), "Bottom")
-            if success:
-                generated_files.append(str(csv_path))
+            if 'csv' in output_formats:
+                csv_path = output_dir / f"{base_name}_Bottom.csv"
+                success, msg = generator.generate_csv(str(csv_path), "Bottom")
+                if success:
+                    generated_files.append(str(csv_path))
+            
+            if 'txt' in output_formats:
+                txt_path = output_dir / f"{base_name}_Bottom_Mounter.txt"
+                success, msg = generator.generate_mounter_format(str(txt_path), "Bottom", "txt")
+                if success:
+                    generated_files.append(str(txt_path))
+            
+            if 'mounter' in output_formats:
+                mounter_path = output_dir / f"{base_name}_Bottom_Mounter.csv"
+                success, msg = generator.generate_mounter_format(str(mounter_path), "Bottom", "csv")
+                if success:
+                    generated_files.append(str(mounter_path))
         
         summary = generator.get_summary()
         msg = f"""P&P 파일 생성 완료!
@@ -512,3 +651,4 @@ def generate_pnp_files(bom_df: pd.DataFrame, output_dir: str,
         
     except Exception as e:
         return False, f"P&P 파일 생성 실패: {str(e)}", generated_files
+

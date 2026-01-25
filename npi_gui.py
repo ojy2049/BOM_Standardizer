@@ -74,6 +74,22 @@ class NPIFrame(ttk.Frame):
                                       values=self.SUPPORTED_MACHINES, width=15, state='readonly')
         machine_combo.pack(side='left', padx=5)
         
+        # 출력 포맷 선택
+        format_frame = ttk.Frame(file_frame)
+        format_frame.pack(fill='x', pady=2)
+        
+        ttk.Label(format_frame, text="출력 포맷:", width=15).pack(side='left')
+        
+        self.format_ssa_var = tk.BooleanVar(value=True)
+        self.format_csv_var = tk.BooleanVar(value=True)
+        self.format_txt_var = tk.BooleanVar(value=True)
+        self.format_mounter_var = tk.BooleanVar(value=False)
+        
+        ttk.Checkbutton(format_frame, text="SSA", variable=self.format_ssa_var).pack(side='left', padx=3)
+        ttk.Checkbutton(format_frame, text="CSV", variable=self.format_csv_var).pack(side='left', padx=3)
+        ttk.Checkbutton(format_frame, text="TXT", variable=self.format_txt_var).pack(side='left', padx=3)
+        ttk.Checkbutton(format_frame, text="Mounter CSV", variable=self.format_mounter_var).pack(side='left', padx=3)
+        
         # 출력 폴더
         output_frame = ttk.Frame(file_frame)
         output_frame.pack(fill='x', pady=2)
@@ -93,6 +109,8 @@ class NPIFrame(ttk.Frame):
         
         ttk.Button(btn_row, text="데이터 매칭", 
                    command=self._match_data, width=15).pack(side='left', padx=5)
+        ttk.Button(btn_row, text="매칭 결과 저장", 
+                   command=self._save_matched_data, width=15).pack(side='left', padx=5)
         ttk.Button(btn_row, text="DFM 분석", 
                    command=self._run_dfm, width=15).pack(side='left', padx=5)
         ttk.Button(btn_row, text="P&P 파일 생성", 
@@ -223,6 +241,49 @@ class NPIFrame(ttk.Frame):
             self.status_var.set(f"매칭 오류: {str(e)}")
             messagebox.showerror("오류", f"데이터 매칭 실패: {str(e)}")
     
+    def _save_matched_data(self):
+        """매칭된 BOM+Centroid 데이터를 파일로 저장"""
+        if self.merged_df is None or self.merged_df.empty:
+            messagebox.showwarning("오류", 
+                "저장할 매칭 데이터가 없습니다.\n"
+                "먼저 '데이터 매칭'을 실행해주세요.")
+            return
+        
+        # 저장 파일 경로 선택
+        file_path = filedialog.asksaveasfilename(
+            title="매칭 결과 저장",
+            defaultextension=".xlsx",
+            filetypes=[
+                ("Excel Files", "*.xlsx"),
+                ("CSV Files", "*.csv"),
+                ("All Files", "*.*")
+            ],
+            initialfile="BOM_Centroid_Matched"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            self.status_var.set("매칭 결과 저장 중...")
+            self.update_idletasks()
+            
+            if file_path.endswith('.csv'):
+                self.merged_df.to_csv(file_path, index=False, encoding='utf-8-sig')
+            else:
+                self.merged_df.to_excel(file_path, index=False, engine='openpyxl')
+            
+            self.status_var.set(f"저장 완료: {Path(file_path).name}")
+            
+            # 생성된 파일 목록에 추가
+            self.files_list.insert('end', file_path)
+            
+            messagebox.showinfo("완료", f"매칭 결과가 저장되었습니다:\n{file_path}")
+            
+        except Exception as e:
+            self.status_var.set(f"저장 오류: {str(e)}")
+            messagebox.showerror("오류", f"파일 저장 실패: {str(e)}")
+    
     def _run_dfm(self):
         """DFM 분석 실행"""
         if self.merged_df is None:
@@ -279,11 +340,26 @@ class NPIFrame(ttk.Frame):
         self.update_idletasks()
         
         try:
+            # 선택된 출력 포맷 수집
+            output_formats = []
+            if self.format_ssa_var.get():
+                output_formats.append('ssa')
+            if self.format_csv_var.get():
+                output_formats.append('csv')
+            if self.format_txt_var.get():
+                output_formats.append('txt')
+            if self.format_mounter_var.get():
+                output_formats.append('mounter')
+            
+            if not output_formats:
+                output_formats = ['ssa', 'csv', 'txt']  # 기본값
+            
             success, msg, files = generate_pnp_files(
                 self.merged_df, 
                 output_dir,
                 board_name="PCB",
-                machine_type=machine
+                machine_type=machine,
+                output_formats=output_formats
             )
             
             self.files_list.delete(0, 'end')

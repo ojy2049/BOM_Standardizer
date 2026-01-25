@@ -51,14 +51,27 @@ class CentroidParser:
               'midx', 'x (mm)', 'x(mm)', 'x (mil)', 'location x'],
         'y': ['y', 'center-y', 'center_y', 'centery', 'pos_y', 'posy', 'mid y', 
               'midy', 'y (mm)', 'y(mm)', 'y (mil)', 'location y'],
-        'rotation': ['rotation', 'rot', 'angle', 'rotate', 'orientation', 'theta', 'r'],
+        'rotation': ['rotation', 'rot', 'angle', 'rotate', 'orientation', 'theta', 'r', 
+                     'orient', 'orient.'],
         'layer': ['layer', 'side', 'tb', 'top/bottom', 'surface', 'top_bottom', 
                   'pcb side', 'board side'],
         'footprint': ['footprint', 'package', 'pkg', 'case', 'pattern', '패키지', 
-                      'fp', 'part type', 'package type'],
+                      'fp', 'part type', 'package type', 'parttype', 'partdecal', 'part decal'],
         'value': ['value', 'val', 'comment', 'description', 'desc', 'spec', '값', '스펙'],
         'mpn': ['mpn', 'part number', 'pn', 'mfr pn', 'manufacturer part number', 
                 '부품번호', 'mfg pn'],
+        # 이미지 2번 포맷 추가 컬럼
+        'pins': ['pins', 'pin count', 'pin_count', '핀수'],
+        'smd': ['smd', 'smt', 'surface mount', 'is_smd'],
+        'glued': ['glued', 'adhesive', '접착', 'glue'],
+    }
+    
+    # 메트릭 패키지 크기를 인치 크기로 변환 (mm → inch)
+    METRIC_TO_INCH_SIZE = {
+        '01005': '01005', '0201': '008004',
+        '1005': '0402', '1608': '0603', '2012': '0805',
+        '3216': '1206', '3225': '1210', '4532': '1812',
+        '5025': '2010', '6332': '2512',
     }
     
     # 레이어 값 정규화
@@ -74,6 +87,16 @@ class CentroidParser:
         self.file_path: str = ""
         self.unit: str = "mm"  # mm 또는 mil
         self.column_mapping: Dict[str, str] = {}
+    
+    @staticmethod
+    def normalize_refdes(refdes: str) -> str:
+        """RefDes 정규화 (R011 -> R11, C025 -> C25)"""
+        match = re.match(r'^([A-Za-z_]+)0*(\d+)$', refdes)
+        if match:
+            prefix = match.group(1)
+            number = match.group(2)
+            return f"{prefix}{number}"
+        return refdes
     
     def load_file(self, file_path: str) -> Tuple[bool, str]:
         """
@@ -223,7 +246,7 @@ class CentroidParser:
                         attr = ""
                 
                 self.centroid_data.append(CentroidData(
-                    refdes=refdes,
+                    refdes=self.normalize_refdes(refdes),  # 정규화 적용
                     x=x,
                     y=y,
                     rotation=rotation % 360,  # 0-359 범위로 정규화
@@ -329,6 +352,16 @@ def match_bom_centroid(bom_df: pd.DataFrame, centroid_parser: CentroidParser,
     centroid_data = {d.refdes: d for d in centroid_parser.get_data()}
     centroid_refdes = set(centroid_data.keys())
     
+    # RefDes 정규화 함수 (R011 -> R11, C025 -> C25)
+    def normalize_refdes(refdes: str) -> str:
+        """RefDes에서 앞의 0 제거 (R011 -> R11)"""
+        match = re.match(r'^([A-Za-z_]+)0*(\d+)$', refdes)
+        if match:
+            prefix = match.group(1)
+            number = match.group(2)
+            return f"{prefix}{number}"
+        return refdes
+    
     # BOM RefDes 파싱 (R1,R2,R3 또는 R1-R3 형태 처리)
     def parse_refdes_list(refdes_str: str) -> List[str]:
         """RefDes 문자열을 개별 RefDes 리스트로 분해"""
@@ -344,7 +377,7 @@ def match_bom_centroid(bom_df: pd.DataFrame, centroid_parser: CentroidParser,
                 continue
             
             # 범위 형태 처리 (R1-R3 → R1, R2, R3)
-            range_match = re.match(r'^([A-Z]+)(\d+)-([A-Z]+)?(\d+)$', part, re.IGNORECASE)
+            range_match = re.match(r'^([A-Z]+)0*(\d+)-([A-Z]+)?0*(\d+)$', part, re.IGNORECASE)
             if range_match:
                 prefix = range_match.group(1)
                 start = int(range_match.group(2))
@@ -352,7 +385,8 @@ def match_bom_centroid(bom_df: pd.DataFrame, centroid_parser: CentroidParser,
                 for i in range(start, end + 1):
                     result.append(f"{prefix}{i}")
             else:
-                result.append(part)
+                # 정규화 적용
+                result.append(normalize_refdes(part))
         
         return result
     
@@ -370,6 +404,11 @@ def match_bom_centroid(bom_df: pd.DataFrame, centroid_parser: CentroidParser,
     for _, row in bom_df.iterrows():
         refdes_list = parse_refdes_list(row.get(refdes_column, ''))
         bom_refdes_all.update(refdes_list)
+    
+    # 디버그: 샘플 RefDes 출력
+    print(f"[DEBUG] BOM RefDes 샘플 (처음 10개): {list(bom_refdes_all)[:10]}")
+    print(f"[DEBUG] Centroid RefDes 샘플 (처음 10개): {list(centroid_refdes)[:10]}")
+    print(f"[DEBUG] BOM 전체 RefDes 수: {len(bom_refdes_all)}, Centroid 전체 RefDes 수: {len(centroid_refdes)}")
     
     # 매칭 분석
     stats['matched'] = len(bom_refdes_all & centroid_refdes)

@@ -424,6 +424,7 @@ class MainApplication(tk.Tk):
   - RefDes, X, Y, Rotation, Layer 컬럼 자동 감지
   - mm/mil 단위 자동 변환
   - BOM의 RefDes와 좌표 파일의 RefDes 비교 및 매칭
+  - **RefDes 정규화** (v2.2.3): `R011` → `R11`, `C025` → `C25` 등 다른 CAD 툴 간 호환성 보장
 
 #### pnp_generator.py
 - **역할**: 매칭된 데이터를 기반으로 SMT 장비용 프로그램을 생성합니다.
